@@ -264,7 +264,7 @@ beat_machine (StepSeq* self, uint32_t ts, uint32_t step)
 			/* send note off */
 			forge_note_event (self, ts, note, 0);
 		}
-		else if (step == 0) {
+		else if (step == 0 && NSET (n, 0)) {
 			/* re-trigger note if it's always on on the first beat. */
 			bool retriger = true;
 			for (uint32_t s = 0; s < N_STEPS; ++s) {
@@ -275,8 +275,13 @@ beat_machine (StepSeq* self, uint32_t ts, uint32_t step)
 			}
 			if (retriger) {
 				const uint8_t note = NOTE (n);
-				forge_note_event (self, ts, note, 0);
-				forge_note_event (self, ts + 1, note, 127); // TODO velocity
+				if (ts > 0) {
+					forge_note_event (self, ts - 1, note, 0);
+					forge_note_event (self, ts, note, 127); // TODO velocity
+				} else {
+					forge_note_event (self, ts, note, 0);
+					forge_note_event (self, ts + 1, note, 127); // TODO velocity
+				}
 			}
 		}
 	}
@@ -368,7 +373,6 @@ run (LV2_Handle instance, uint32_t n_samples)
 		return;
 	}
 
-
 	const uint32_t capacity = self->midiout->atom.size;
 	lv2_atom_forge_set_buffer (&self->forge, (uint8_t*)self->midiout, capacity);
 	lv2_atom_forge_sequence_head (&self->forge, &self->frame, 0);
@@ -438,7 +442,7 @@ run (LV2_Handle instance, uint32_t n_samples)
 
 	uint32_t remain = n_samples;
 
-	while (stme + remain >= next_step) {
+	while (stme + remain > next_step) {
 		assert (stme <= next_step);
 		uint32_t pos = next_step - stme;
 		if (stme > next_step) {
