@@ -1,0 +1,33 @@
+        </table>
+    </div>
+
+    <div class="mod-control-group clearfix bottom-group">
+        <div class="mod-knob m16 wide">
+            <span class="mod-knob-title">Midi Channel</span>
+            <div class="mod-knob-m16-image" mod-role="input-control-port" mod-port-symbol="chn"></div>
+        </div>
+        <div class="mod-knob wide">
+            <div class="mod-knob-image" mod-role="input-control-port" mod-port-symbol="bpm"></div>
+            <span class="mod-knob-right-title">BPM</span>
+            <div class="mod-knob-value" contenteditable="true" mod-role="input-control-value" mod-port-symbol="bpm"></div>
+        </div>
+        <div class="mod-knob">
+            <div class="mod-pushbutton off" mod-widget="switch" mod-role="input-control-port" mod-port-symbol="panic"></div>
+            <span class="mod-knob-title">Panic</span>
+        </div>
+    </div>
+    <div class="mod-pedal-input">
+        {{#effect.ports.midi.input}}
+        <div class="mod-input mod-input-disconnected" title="{{name}}" mod-role="input-midi-port" mod-port-symbol="{{symbol}}">
+            <div class="mod-pedal-input-image"></div>
+        </div>
+        {{/effect.ports.midi.input}}
+    </div>
+    <div class="mod-pedal-output">
+        {{#effect.ports.midi.output}}
+        <div class="mod-output mod-output-disconnected" title="{{name}}" mod-role="output-midi-port" mod-port-symbol="{{symbol}}">
+            <div class="mod-pedal-output-image"></div>
+        </div>
+        {{/effect.ports.midi.output}}
+    </div>
+</div>

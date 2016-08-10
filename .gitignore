@@ -1,0 +1,8 @@
+/build
+/modgui/icon-*.html
+/modgui/style-*.css
+*.dSYM
+
+*.swp
+cscope.*
+tags

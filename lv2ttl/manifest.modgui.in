@@ -1,0 +1,11 @@
+
+<http://gareus.org/oss/lv2/@LV2NAME@>
+    modgui:gui [
+        modgui:resourcesDirectory <modgui> ;
+        modgui:iconTemplate <modgui/icon-@LV2NAME@.html> ;
+        modgui:stylesheet <modgui/style-@LV2NAME@.css> ;
+        modgui:screenshot <modgui/screenshot-@LV2NAME@.png> ;
+        modgui:thumbnail <modgui/thumbnail-@LV2NAME@.png> ;
+        @MODBRAND@
+        @MODLABEL@
+    ] .
