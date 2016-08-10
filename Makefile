@@ -95,7 +95,7 @@ ifneq ($(MOD),)
 		lv2ttl/manifest.modgui.in >> $(BUILDDIR)manifest.ttl
 endif
 
-$(BUILDDIR)$(LV2NAME).ttl: lv2ttl/$(LV2NAME).ttl.in Makefile gridgen.sh misc/mod_icon.head misc/mod_icon.tail
+$(BUILDDIR)$(LV2NAME).ttl: lv2ttl/$(LV2NAME).ttl.in Makefile gridgen.sh misc/mod_icon.head misc/mod_icon.tail misc/style.css.in
 	@mkdir -p $(BUILDDIR)
 	sed "s/@LV2NAME@/$(LV2NAME)/;s/@VERSION@/lv2:microVersion $(LV2MIC) ;lv2:minorVersion $(LV2MIN) ;/g;s/@MODBRAND@/$(MODBRAND)/;s/@MODLABEL@/$(MODLABEL)/;s/@STEPS@/$(N_STEPS)/" \
 		lv2ttl/$(LV2NAME).ttl.in > $(BUILDDIR)$(LV2NAME).ttl
@@ -110,7 +110,7 @@ $(BUILDDIR)$(LV2NAME)$(LIB_EXT): src/$(LV2NAME).c Makefile
 	  -shared $(LV2LDFLAGS) $(LDFLAGS) $(LOADLIBES)
 	$(STRIP) $(STRIPFLAGS) $(BUILDDIR)$(LV2NAME)$(LIB_EXT)
 
-$(BUILDDIR)modgui:
+$(BUILDDIR)modgui: $(BUILDDIR)$(LV2NAME).ttl
 	@mkdir -p $(BUILDDIR)/modgui
 	cp -r modgui/* $(BUILDDIR)modgui/
 
