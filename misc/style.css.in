@@ -254,16 +254,14 @@
 }
 
 .x42-stepseq{{{cns}}} .buttongrid .togglebtn.on {
-    background-image:url(/resources/led-grn-on.png{{{ns}}});
-    background-color:#333;
-    box-shadow: 0 -2px 2px 1px #222 inset, -1px -2px 1px 1px #888 inset;
+    background-color:#f93;
+    box-shadow: 0 -2px 2px 1px #951 inset, -1px -2px 1px 1px #e82 inset;
     padding: 21px 0 0 6px;
     background-position: 21px 2px;
 }
 
 .x42-stepseq{{{cns}}} .buttongrid .togglebtn.off {
-    background-image:url(/resources/led-grn-off.png{{{ns}}});
-    box-shadow: 2px 2px 2px 0px #000 inset, -2px -2px 2px 1px #666 inset;
+    box-shadow: 2px 2px 2px 0px #000 inset, -2px -2px 2px 1px #888 inset;
 }
 
 /* = COLORS
