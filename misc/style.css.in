@@ -22,12 +22,12 @@
 }
 
 .x42-stepseq{{{cns}}} .x42-brand {
-    bottom: 70px;
+    bottom:6.5%;
     cursor:default;
-    right: 38px;
+    right: 60px;
     position:absolute;
-    text-align:center;
     width: 25px;
+    margin-bottom:87px;
 }
 
 .x42-stepseq{{{cns}}} .x42-brand h1 {
@@ -36,15 +36,13 @@
     padding:0;
     margin:0;
     color:#eee;
-    transform: rotate(270deg);
-    -webkit-transform: rotate(270deg);
     text-shadow: -2px 2px 2px #444;
 }
 
 .x42-stepseq{{{cns}}} .x42-plugin-name {
     overflow:hidden;
     position:absolute;
-    right:8%;
+    right:44px;
     text-align:center;
     bottom:5.5%;
 }
@@ -65,9 +63,10 @@
     height:32px;
     width:32px;
     position:absolute;
-    @LG@
+    right:43px;
+    bottom:6.5%;
+    margin-bottom:18px;
 }
-
 
 /* = FOOTSWITCH
 ================================================ */
@@ -81,13 +80,14 @@
     margin: auto;
     width: 44px;
     position:absolute;
-    @FS@
+    bottom:6.5%;
+    margin-bottom:52px;
+    right:38px;
 }
 
 .x42-stepseq{{{cns}}} .mod-footswitch.on {
     background-position: top center !important;
 }
-
 
 /* = KNOBS
 ================================================ */
@@ -102,10 +102,10 @@
     margin-top:10px;
     margin-left:auto;
     margin-right:auto;
-    width:208px;
+    width:240px;
     position:absolute;
-    bottom:35px;
-    left:68px;
+    bottom:6.5%;
+    left:35px;
 }
 
 .x42-stepseq{{{cns}}} .mod-control-group .mod-knob {
@@ -189,6 +189,16 @@
     margin:6px auto 0 auto;
 }
 
+.x42-stepseq{{{cns}}} .mod-control-group .mod-knob-step-image {
+    background-image:url(/resources/division.png{{{ns}}});
+    background-repeat:no-repeat;
+    background-size:auto 42px;
+    background-color:#222;
+    box-shadow: 2px 2px 2px 0px #000 inset, -1px -1px 2px 1px #fff inset;
+    height:42px;
+    width:30px;
+    margin:6px auto 0 auto;
+}
 
 .x42-stepseq{{{cns}}} .mod-control-group .mod-knob-note-image {
     background-image:url(/resources/notes.png{{{ns}}});

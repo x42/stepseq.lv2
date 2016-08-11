@@ -68,16 +68,7 @@ done
 
 cat misc/mod_icon.tail >> $MODICON
 
-WIDTH=$(( 172 + $STEPS * 46 ))  # 48px per NOTE
-HEIGHT=$(( 172 + $NOTES * 46 ))  # 48px per NOTE
+WIDTH=$(( 172 + $STEPS * 46 ))
+HEIGHT=$(( 160 + $NOTES * 50 ))
 
-if test $STEPS -le 5; then
-	FS="bottom:86px; left:33px;"
-	LG="bottom:53px; left:39px;"
-else
-	FS="bottom:86px; right:85px;"
-	LG="bottom:53px; right:90px;"
-	LG="bottom:60px; right:90px;"
-fi
-
-sed "s/@WIDTH@/$WIDTH/g;s/@HEIGHT@/$HEIGHT/g;s/@FS@/$FS/;s/@LG@/$LG/" misc/style.css.in > $MODSTYLE
+sed "s/@WIDTH@/$WIDTH/g;s/@HEIGHT@/$HEIGHT/g" misc/style.css.in > $MODSTYLE

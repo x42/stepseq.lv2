@@ -2,8 +2,12 @@
     </div>
 
     <div class="mod-control-group clearfix bottom-group">
+        <div class="mod-knob">
+            <span class="mod-knob-title">Step</span>
+            <div class="mod-knob-step-image" mod-role="input-control-port" mod-port-symbol="div"></div>
+        </div>
         <div class="mod-knob m16 wide">
-            <span class="mod-knob-title">Midi Channel</span>
+            <span class="mod-knob-title">Midi Chan.</span>
             <div class="mod-knob-m16-image" mod-role="input-control-port" mod-port-symbol="chn"></div>
         </div>
         <div class="mod-knob wide">
