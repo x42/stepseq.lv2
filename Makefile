@@ -26,6 +26,7 @@ LOADLIBES=-lm
 LV2NAME=stepseq
 BUNDLE=stepseq.lv2
 URISUFFIX=s$(N_STEPS)n$(N_NOTES)
+NAMESUFFIX=$(N_STEPS)x$(N_NOTES)
 
 targets=
 
@@ -54,9 +55,9 @@ targets+=$(BUILDDIR)$(LV2NAME)$(LIB_EXT)
 
 ifneq ($(MOD),)
   targets+=$(BUILDDIR)modgui
-  MODLABEL=mod:label \"MIDI Sequencer\";
+  MODLABEL=mod:label \"Step Seq. $(N_STEPS)x$(N_NOTES)\";
   MODBRAND=mod:brand \"x42\";
-  MODGUILABEL=modgui:label \"MIDI Sequencer\";
+  MODGUILABEL=modgui:label \"Step Seq. $(N_STEPS)x$(N_NOTES)\";
   MODGUIBRAND=modgui:brand \"x42\";
 else
   MODLABEL=
@@ -100,7 +101,7 @@ endif
 
 $(BUILDDIR)$(LV2NAME).ttl: lv2ttl/$(LV2NAME).ttl.in Makefile gridgen.sh misc/mod_icon.head misc/mod_icon.tail misc/style.css.in
 	@mkdir -p $(BUILDDIR)
-	sed "s/@LV2NAME@/$(LV2NAME)/;s/@URISUFFIX@/$(URISUFFIX)/;s/@VERSION@/lv2:microVersion $(LV2MIC) ;lv2:minorVersion $(LV2MIN) ;/g;s/@MODBRAND@/$(MODBRAND)/;s/@MODLABEL@/$(MODLABEL)/;s/@STEPS@/$(N_STEPS)/" \
+	sed "s/@LV2NAME@/$(LV2NAME)/;s/@NAMESUFFIX@/$(NAMESUFFIX)/;s/@URISUFFIX@/$(URISUFFIX)/;s/@VERSION@/lv2:microVersion $(LV2MIC) ;lv2:minorVersion $(LV2MIN) ;/g;s/@MODBRAND@/$(MODBRAND)/;s/@MODLABEL@/$(MODLABEL)/;s/@STEPS@/$(N_STEPS)/" \
 		lv2ttl/$(LV2NAME).ttl.in > $(BUILDDIR)$(LV2NAME).ttl
 	./gridgen.sh $(N_NOTES) $(N_STEPS) >> $(BUILDDIR)$(LV2NAME).ttl
 	echo "]; ." >> $(BUILDDIR)$(LV2NAME).ttl

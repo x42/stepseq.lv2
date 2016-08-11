@@ -21,7 +21,7 @@
 	a lv2:Plugin, doap:Project, lv2:UtilityPlugin;
 	doap:license <http://usefulinc.com/doap/licenses/gpl>;
 	doap:maintainer <http://gareus.org/rgareus#me>;
-	doap:name "MIDI Step Sequencer";
+	doap:name "MIDI Step Sequencer@NAMESUFFIX@";
 	rdfs:comment "A simple step sequencer.";
 	@VERSION@
 	lv2:optionalFeature lv2:hardRTCapable;
