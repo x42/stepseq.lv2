@@ -252,6 +252,23 @@ forge_note_event (StepSeq* self, uint32_t ts, uint8_t note, uint8_t vel)
 	forge_midimessage (self, ts, msg, 3);
 }
 
+float parse_division (float div) {
+	int d = rintf (div);
+	switch (d) {
+		case 0: return 0.125f;
+		case 1: return 0.25f;
+		case 2: return 0.5f;
+		case 3: return 1.f;
+		case 4: return 2.f;
+		case 5: return 3.f;
+		case 6: return 4.f;
+		case 7: return 8.f;
+		case 8: return 12.f;
+		case 9: return 16.f;
+	}
+	return 1.f;
+}
+
 /* *****************************************************************************
  * Sequencer
  */
@@ -464,10 +481,11 @@ run (LV2_Handle instance, uint32_t n_samples)
 		bpm = *self->p_bpm;
 	}
 
-	if (bpm != self->bpm || *self->p_div != self->div) {
+	const float division = parse_division (*self->p_div);
+	if (bpm != self->bpm || division != self->div) {
 		const float old = self->sps;
 		self->bpm = bpm;
-		self->div = *self->p_div;
+		self->div = division;
 		self->sps = self->sample_rate * 60.f * self->div / self->bpm;
 		if (self->sps < 64) { self->sps = 64; }
 		if (self->sps > 60 * self->sample_rate) { self->sps = 60 * self->sample_rate; }

@@ -55,12 +55,7 @@ for n in `seq 1 $NOTES`; do
 		lv2:maximum 1.0 ;
 		lv2:portProperty lv2:integer, lv2:toggled;
 EOF
-    if test $(( $s % 2 )) = 0; then
-			TXT="$(( $s / 2 ))+"
-		else
-			TXT="$(( 1 + $s / 2 ))"
-		fi
-		echo '<td><div class="togglebtn on"  mod-widget="switch" mod-role="input-control-port" mod-port-symbol="grid_'$s'_'$n'">'$TXT'</div></td>' >> $MODICON
+		echo '<td><div class="togglebtn on"  mod-widget="switch" mod-role="input-control-port" mod-port-symbol="grid_'$s'_'$n'">'$s'</div></td>' >> $MODICON
 	  IDX=$(($IDX + 1))
 	done
 	echo '</tr>' >> $MODICON
