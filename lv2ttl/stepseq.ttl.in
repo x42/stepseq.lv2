@@ -17,7 +17,7 @@
 	foaf:mbox <mailto:robin@gareus.org>;
 	foaf:homepage <http://gareus.org/> .
 
-<http://gareus.org/oss/lv2/@LV2NAME@>
+<http://gareus.org/oss/lv2/@LV2NAME@#@URISUFFIX@>
 	a lv2:Plugin, doap:Project, lv2:UtilityPlugin;
 	doap:license <http://usefulinc.com/doap/licenses/gpl>;
 	doap:maintainer <http://gareus.org/rgareus#me>;

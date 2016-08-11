@@ -1,5 +1,5 @@
 
-<http://gareus.org/oss/lv2/@LV2NAME@>
+<http://gareus.org/oss/lv2/@LV2NAME@#@URISUFFIX@>
     modgui:gui [
         modgui:resourcesDirectory <modgui> ;
         modgui:iconTemplate <modgui/icon-@LV2NAME@.html> ;

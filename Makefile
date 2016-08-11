@@ -8,7 +8,9 @@ OPTIMIZATIONS ?= -msse -msse2 -mfpmath=sse -ffast-math -fomit-frame-pointer -O3 
 PREFIX ?= /usr/local
 CFLAGS ?= $(OPTIMIZATIONS) -Wall
 LIBDIR ?= lib
+LV2DIR ?= $(PREFIX)/$(LIBDIR)/lv2
 
+# grid-size (should be at least 4x4 for the MOD-GUI)
 N_NOTES ?= 8
 N_STEPS ?= 8
 
@@ -18,12 +20,13 @@ STRIPFLAGS?=-s
 stepseq_VERSION?=$(shell git describe --tags HEAD 2>/dev/null | sed 's/-g.*$$//;s/^v//' || echo "LV2")
 ###############################################################################
 LIB_EXT=.so
+BUILDDIR=build/
 
-LV2DIR ?= $(PREFIX)/$(LIBDIR)/lv2
 LOADLIBES=-lm
 LV2NAME=stepseq
 BUNDLE=stepseq.lv2
-BUILDDIR=build/
+URISUFFIX=s$(N_STEPS)n$(N_NOTES)
+
 targets=
 
 UNAME=$(shell uname)
@@ -88,16 +91,16 @@ lv2syms:
 
 $(BUILDDIR)manifest.ttl: lv2ttl/manifest.ttl.in Makefile
 	@mkdir -p $(BUILDDIR)
-	sed "s/@LV2NAME@/$(LV2NAME)/;s/@LIB_EXT@/$(LIB_EXT)/" \
+	sed "s/@LV2NAME@/$(LV2NAME)/;s/@URISUFFIX@/$(URISUFFIX)/;s/@LIB_EXT@/$(LIB_EXT)/" \
 	  lv2ttl/manifest.ttl.in > $(BUILDDIR)manifest.ttl
 ifneq ($(MOD),)
-	sed "s/@LV2NAME@/$(LV2NAME)/;s/@MODBRAND@/$(MODGUIBRAND)/;s/@MODLABEL@/$(MODGUILABEL)/" \
+	sed "s/@LV2NAME@/$(LV2NAME)/;s/@URISUFFIX@/$(URISUFFIX)/;s/@MODBRAND@/$(MODGUIBRAND)/;s/@MODLABEL@/$(MODGUILABEL)/" \
 		lv2ttl/manifest.modgui.in >> $(BUILDDIR)manifest.ttl
 endif
 
 $(BUILDDIR)$(LV2NAME).ttl: lv2ttl/$(LV2NAME).ttl.in Makefile gridgen.sh misc/mod_icon.head misc/mod_icon.tail misc/style.css.in
 	@mkdir -p $(BUILDDIR)
-	sed "s/@LV2NAME@/$(LV2NAME)/;s/@VERSION@/lv2:microVersion $(LV2MIC) ;lv2:minorVersion $(LV2MIN) ;/g;s/@MODBRAND@/$(MODBRAND)/;s/@MODLABEL@/$(MODLABEL)/;s/@STEPS@/$(N_STEPS)/" \
+	sed "s/@LV2NAME@/$(LV2NAME)/;s/@URISUFFIX@/$(URISUFFIX)/;s/@VERSION@/lv2:microVersion $(LV2MIC) ;lv2:minorVersion $(LV2MIN) ;/g;s/@MODBRAND@/$(MODBRAND)/;s/@MODLABEL@/$(MODLABEL)/;s/@STEPS@/$(N_STEPS)/" \
 		lv2ttl/$(LV2NAME).ttl.in > $(BUILDDIR)$(LV2NAME).ttl
 	./gridgen.sh $(N_NOTES) $(N_STEPS) >> $(BUILDDIR)$(LV2NAME).ttl
 	echo "]; ." >> $(BUILDDIR)$(LV2NAME).ttl

@@ -32,14 +32,9 @@
 #include "lv2/lv2plug.in/ns/ext/time/time.h"
 #include <lv2/lv2plug.in/ns/ext/urid/urid.h>
 
-#define SEQ_URI "http://gareus.org/oss/lv2/stepseq"
-
-#ifndef N_NOTES
-# define N_NOTES 8
-#endif
-#ifndef N_STEPS
-# define N_STEPS 8
-#endif
+#define xstr(s) str(s)
+#define str(s) #s
+#define SEQ_URI "http://gareus.org/oss/lv2/stepseq#s" xstr(N_NOTES) "n" xstr(N_STEPS)
 
 enum {
 	PORT_CTRL_IN = 0,
