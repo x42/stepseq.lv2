@@ -45,6 +45,17 @@
 	] , [
 		a lv2:InputPort, lv2:ControlPort;
 		lv2:index 2;
+		lv2:symbol "sync";
+		lv2:name "Sync";
+		lv2:minimum 0;
+		lv2:default 0;
+		lv2:maximum 1;
+		lv2:portProperty lv2:integer, lv2:enumeration;
+		lv2:scalePoint [ rdfs:label  "Control Port"; rdf:value 0 ; ] ;
+		lv2:scalePoint [ rdfs:label  "Plugin Host (if available)"; rdf:value 1 ; ] ;
+	] , [
+		a lv2:InputPort, lv2:ControlPort;
+		lv2:index 3;
 		lv2:symbol "bpm";
 		lv2:name "BPM";
 		lv2:minimum  5.0;
@@ -52,7 +63,26 @@
 		lv2:maximum 360.0;
 	] , [
 		a lv2:InputPort, lv2:ControlPort;
-		lv2:index 3;
+		lv2:index 4;
+		lv2:symbol "div";
+		lv2:name "Step Duration (4/4)";
+		lv2:minimum  0.125;
+		lv2:default  0.5;
+		lv2:maximum  16.0;
+		units:unit units:beat;
+#		lv2:portProperty lv2:enumeration; # jalv does not handle, non-integer enums :(
+		lv2:scalePoint [ rdfs:label  "16th"; rdf:value 0.25 ; ] ;
+		lv2:scalePoint [ rdfs:label  "8th"; rdf:value 0.5 ; ] ;
+		lv2:scalePoint [ rdfs:label  "Quarter"; rdf:value 1.0 ; ] ;
+		lv2:scalePoint [ rdfs:label  "Half Note"; rdf:value 2.0 ; ] ;
+		lv2:scalePoint [ rdfs:label  "One Bar"; rdf:value 4.0 ; ] ;
+		lv2:scalePoint [ rdfs:label  "3/2 Bars"; rdf:value 6.0 ; ] ;
+		lv2:scalePoint [ rdfs:label  "2 Bars"; rdf:value 8.0 ; ] ;
+		lv2:scalePoint [ rdfs:label  "3 Bars"; rdf:value 12.0 ; ] ;
+		lv2:scalePoint [ rdfs:label  "4 Bars"; rdf:value 16.0 ; ] ;
+	] , [
+		a lv2:InputPort, lv2:ControlPort;
+		lv2:index 5;
 		lv2:symbol "chn";
 		lv2:name "Midi Channel";
 		lv2:minimum 0.0;
@@ -62,7 +92,7 @@
 	] , [
 		a lv2:InputPort ,
 			lv2:ControlPort ;
-		lv2:index 4 ;
+		lv2:index 6 ;
 		lv2:symbol "panic" ;
 		lv2:name "MIDI Panic";
 		lv2:default 0.0 ;
@@ -71,7 +101,7 @@
 		lv2:portProperty lv2:integer, lv2:toggled, pprop:trigger;
 	] , [
 		a lv2:OutputPort, lv2:ControlPort ;
-		lv2:index 5;
+		lv2:index 7;
 		lv2:symbol "pos";
 		lv2:name "Step Position";
 		lv2:minimum 1;

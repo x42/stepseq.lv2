@@ -41,12 +41,12 @@
 # define N_STEPS 8
 #endif
 
-#define STEPS_PER_BEAT 2.f
-
 enum {
 	PORT_CTRL_IN = 0,
 	PORT_MIDI_OUT,
+	PORT_SYNC,
 	PORT_BPM,
+	PORT_DIVIDER,
 	PORT_CHN,
 	PORT_PANIC,
 	PORT_STEP,
@@ -59,19 +59,24 @@ typedef struct {
 	LV2_URID atom_Sequence;
 	LV2_URID midi_MidiEvent;
 	LV2_URID atom_Float;
+	LV2_URID atom_Int;
 	LV2_URID atom_Long;
 	LV2_URID time_Position;
+	LV2_URID time_bar;
 	LV2_URID time_barBeat;
+	LV2_URID time_beatUnit;
+	LV2_URID time_beatsPerBar;
 	LV2_URID time_beatsPerMinute;
 	LV2_URID time_speed;
-	LV2_URID time_frame;
 } StepSeqURIs;
 
 typedef struct {
 	/* ports */
 	const LV2_Atom_Sequence* ctrl_in;
 	LV2_Atom_Sequence* midiout;
+	float* p_sync;
 	float* p_bpm;
+	float* p_div;
 	float* p_chn;
 	float* p_panic;
 	float* p_step;
@@ -90,21 +95,22 @@ typedef struct {
 	LV2_Log_Logger logger;
 
 	/* Cached Port */
-	float bpm;
+	float bpm; // beats per minute
+	float div; // beats per step
 
 	/* Settings */
-	float sample_rate;
-	float spb; // samples / beat
+	float sample_rate; // samples per second
+	float sps; // samples per step
 
 	/* Host Time */
-	bool  host_info;
-	float host_bpm;
-	float bar_beats;
-	float host_speed;
-	long int host_frame;
+	bool     host_info;
+	float    host_bpm;
+	float    bar_beats;
+	float    host_speed;
+	int      host_div;
 
 	/* State */
-	float    stme;  // sample-time
+	float    stme; // sample-time
 	int32_t  step; // current step
 	uint8_t  chn;  // midi channel
 
@@ -130,13 +136,16 @@ map_mem_uris (LV2_URID_Map* map, StepSeqURIs* uris)
 	uris->atom_Object         = map->map (map->handle, LV2_ATOM__Object);
 	uris->midi_MidiEvent      = map->map (map->handle, LV2_MIDI__MidiEvent);
 	uris->atom_Sequence       = map->map (map->handle, LV2_ATOM__Sequence);
-
-	uris->atom_Long           = map->map(map->handle, LV2_ATOM__Long);
-	uris->atom_Float          = map->map(map->handle, LV2_ATOM__Float);
-	uris->time_barBeat        = map->map(map->handle, LV2_TIME__barBeat);
-	uris->time_beatsPerMinute = map->map(map->handle, LV2_TIME__beatsPerMinute);
-	uris->time_speed          = map->map(map->handle, LV2_TIME__speed);
-	uris->time_frame          = map->map(map->handle, LV2_TIME__frame);
+	uris->time_Position       = map->map (map->handle, LV2_TIME__Position);
+	uris->atom_Long           = map->map (map->handle, LV2_ATOM__Long);
+	uris->atom_Int            = map->map (map->handle, LV2_ATOM__Int);
+	uris->atom_Float          = map->map (map->handle, LV2_ATOM__Float);
+	uris->time_bar            = map->map (map->handle, LV2_TIME__bar);
+	uris->time_barBeat        = map->map (map->handle, LV2_TIME__barBeat);
+	uris->time_beatUnit       = map->map (map->handle, LV2_TIME__beatUnit);
+	uris->time_beatsPerBar    = map->map (map->handle, LV2_TIME__beatsPerBar);
+	uris->time_beatsPerMinute = map->map (map->handle, LV2_TIME__beatsPerMinute);
+	uris->time_speed          = map->map (map->handle, LV2_TIME__speed);
 }
 
 /**
@@ -148,27 +157,39 @@ update_position (StepSeq* self, const LV2_Atom_Object* obj)
 {
 	const StepSeqURIs* uris = &self->uris;
 
-	LV2_Atom* speed = NULL;
-	LV2_Atom* frame = NULL;
+	LV2_Atom* bar   = NULL;
 	LV2_Atom* beat  = NULL;
+	LV2_Atom* bunit = NULL;
+	LV2_Atom* bpb   = NULL;
 	LV2_Atom* bpm   = NULL;
+	LV2_Atom* speed = NULL;
 
 	lv2_atom_object_get (
 			obj,
+			uris->time_bar, &bar,
 			uris->time_barBeat, &beat,
+			uris->time_beatUnit, &bunit,
+			uris->time_beatsPerBar, &bpb,
 			uris->time_beatsPerMinute, &bpm,
 			uris->time_speed, &speed,
-			uris->time_frame, &frame,
 			NULL);
 
-	if (bpm && bpm->type == uris->atom_Float
-			&& beat && beat->type == uris->atom_Float
-			&& frame && frame->type == uris->atom_Long
-			&& speed && speed->type == uris->atom_Float ) {
-		self->host_speed = ((LV2_Atom_Float*)speed)->body;
-		self->host_frame = ((LV2_Atom_Long*)frame)->body;
+	if (   bpm   && bpm->type == uris->atom_Float
+			&& bpb   && bpb->type == uris->atom_Float
+			&& bar   && bar->type == uris->atom_Long
+			&& beat  && beat->type == uris->atom_Float
+			&& bunit && bunit->type == uris->atom_Int
+			&& speed && speed->type == uris->atom_Float)
+	{
+		float    _bpb   = ((LV2_Atom_Float*)bpb)->body;
+		long int _bar   = ((LV2_Atom_Long*)bar)->body;
+		float    _beat  = ((LV2_Atom_Float*)beat)->body;
+
+		self->host_div   = ((LV2_Atom_Int*)bunit)->body;
 		self->host_bpm   = ((LV2_Atom_Float*)bpm)->body;
-		self->bar_beats  = ((LV2_Atom_Float*)beat)->body;
+		self->host_speed = ((LV2_Atom_Float*)speed)->body;
+
+		self->bar_beats  = _bar * _bpb + _beat; // * host_div / 4.0 // TODO map host metrum
 		self->host_info  = true;
 	}
 }
@@ -320,8 +341,9 @@ instantiate (const LV2_Descriptor*     descriptor,
 	map_mem_uris (self->map, &self->uris);
 
 	self->sample_rate = rate;
-	self->bpm = 120;
-	self->spb = self->sample_rate * 60.f / self->bpm;
+	self->bpm = 120.f;
+	self->div = .5f;
+	self->sps = self->sample_rate * 60.f * self->div / self->bpm;
 
 	reset_note_tracker (self);
 
@@ -342,8 +364,14 @@ connect_port (LV2_Handle instance,
 		case PORT_MIDI_OUT:
 			self->midiout = (LV2_Atom_Sequence*)data;
 			break;
+		case PORT_SYNC:
+			self->p_sync = (float*)data;
+			break;
 		case PORT_BPM:
 			self->p_bpm = (float*)data;
+			break;
+		case PORT_DIVIDER:
+			self->p_div = (float*)data;
 			break;
 		case PORT_CHN:
 			self->p_chn = (float*)data;
@@ -377,7 +405,6 @@ run (LV2_Handle instance, uint32_t n_samples)
 	lv2_atom_forge_set_buffer (&self->forge, (uint8_t*)self->midiout, capacity);
 	lv2_atom_forge_sequence_head (&self->forge, &self->frame, 0);
 
-
 	/* process control events */
 	LV2_Atom_Event* ev = lv2_atom_sequence_begin (&(self->ctrl_in)->body);
 	while (!lv2_atom_sequence_is_end (&(self->ctrl_in)->body, (self->ctrl_in)->atom.size, ev)) {
@@ -388,15 +415,6 @@ run (LV2_Handle instance, uint32_t n_samples)
 			}
 		}
 		ev = lv2_atom_sequence_next (ev);
-	}
-
-	if (*self->p_bpm != self->bpm) {
-		const float old = self->spb;
-		self->bpm = *self->p_bpm;
-		self->spb = self->sample_rate * 60.f / self->bpm;
-		if (self->spb < 20) { self->spb = 20; }
-		if (self->spb > 12 * self->sample_rate) { self->spb = 12 * self->sample_rate; }
-		self->stme = self->stme * self->spb / old;
 	}
 
 	for (uint32_t n = 0; n < N_NOTES; ++n) {
@@ -423,22 +441,67 @@ run (LV2_Handle instance, uint32_t n_samples)
 		}
 	}
 
-	uint8_t chn = ((int)floorf (*self->p_chn)) & 0xf;
+	const uint8_t chn = ((int)floorf (*self->p_chn)) & 0xf;
 	if (chn != self->chn || *self->p_panic > 0) {
 		self->chn = chn;
 		midi_panic (self);
 		reset_note_tracker (self);
 	}
 
-	// TODO add host-time support
-	// ( self->bar_beats  * STEPS_PER_BEAT ) % N_STEPS
+	if (*self->p_panic > 0) {
+		self->step = 0;
+		self->stme = 0;
+	}
 
-	const float spb = self->spb;
-	const float loop_duration = N_STEPS * spb / STEPS_PER_BEAT;
+	float bpm;
 
-	float stme = self->stme;
+	if (self->host_info && *self->p_sync > 0) {
+		if (self->host_speed <= 0) {
+			/* keep track of host position.. */
+			self->bar_beats += n_samples * self->host_bpm * self->host_speed / (60.f * self->sample_rate);
+			/* report only, don't modify state  (stme & step need to remain in sync) */
+			*self->p_step = ((int)floor (self->bar_beats / self->div) % N_STEPS);
+			// TODO: panic (once) when starting to move backwards or stop
+			return;
+		}
+		bpm = self->host_bpm * self->host_speed;
+	} else {
+		bpm = *self->p_bpm;
+	}
+
+	if (bpm != self->bpm || *self->p_div != self->div) {
+		const float old = self->sps;
+		self->bpm = bpm;
+		self->div = *self->p_div;
+		self->sps = self->sample_rate * 60.f * self->div / self->bpm;
+		if (self->sps < 64) { self->sps = 64; }
+		if (self->sps > 60 * self->sample_rate) { self->sps = 60 * self->sample_rate; }
+		self->stme = self->stme * self->sps / old;
+	}
+
+	const float sps = self->sps;
+	const float loop_duration = N_STEPS * sps;
 	uint32_t step = self->step;
-	float next_step = step * spb / STEPS_PER_BEAT;
+	float stme = self->stme;
+
+	if (self->host_info && *self->p_sync > 0) {
+		float hp = self->bar_beats / self->div;
+
+		stme = fmodf (hp, N_STEPS) * sps;
+		/* handle seek - jumps in step. */
+		const float ns = step * sps;
+		if (ns < stme ||  ns - stme > sps) {
+			if (floor (hp) == hp) {
+				step = ((int)floor (hp) % N_STEPS);
+			} else {
+				step = 1 + ((int)floor (hp) % N_STEPS);
+			}
+			midi_panic (self);
+			reset_note_tracker (self);
+		}
+	}
+
+	float next_step = step * sps;
 
 	uint32_t remain = n_samples;
 
@@ -453,7 +516,10 @@ run (LV2_Handle instance, uint32_t n_samples)
 		remain -= pos;
 		stme += pos;
 
-			if (step >= N_STEPS) {
+			if (step == 0) {
+				beat_machine (self, pos, 0);
+				self->step = step = 1;
+			} else if (step >= N_STEPS || step == 0) {
 				beat_machine (self, pos, 0);
 				stme -= loop_duration;
 				self->step = step = 1;
@@ -461,11 +527,16 @@ run (LV2_Handle instance, uint32_t n_samples)
 				beat_machine (self, pos, step);
 				self->step = ++step ;
 			}
-			next_step = step * spb / STEPS_PER_BEAT;
-
+			next_step = step * sps;
 	}
+
 	self->stme = stme + remain;
+
 	*self->p_step = 1 + (self->step % N_STEPS);
+	if (self->host_info) {
+		/* keep track of host position.. */
+		self->bar_beats += n_samples * self->host_bpm * self->host_speed / (60.f * self->sample_rate);
+	}
 }
 
 static void
