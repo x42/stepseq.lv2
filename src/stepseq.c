@@ -553,6 +553,15 @@ run (LV2_Handle instance, uint32_t n_samples)
 }
 
 static void
+activate (LV2_Handle instance)
+{
+	StepSeq* self = (StepSeq*)instance;
+	self->chn = 255; // queue reset/panic
+	self->step = 0;
+	self->stme = 0;
+}
+
+static void
 cleanup (LV2_Handle instance)
 {
 	free (instance);
@@ -568,7 +577,7 @@ static const LV2_Descriptor descriptor = {
 	SEQ_URI,
 	instantiate,
 	connect_port,
-	NULL,
+	activate,
 	run,
 	NULL,
 	cleanup,
