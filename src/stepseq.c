@@ -34,7 +34,7 @@
 
 #define xstr(s) str(s)
 #define str(s) #s
-#define SEQ_URI "http://gareus.org/oss/lv2/stepseq#s" xstr(N_NOTES) "n" xstr(N_STEPS)
+#define SEQ_URI "http://gareus.org/oss/lv2/stepseq#s" xstr(N_STEPS) "n" xstr(N_NOTES)
 
 enum {
 	PORT_CTRL_IN = 0,
