@@ -50,10 +50,10 @@ for n in `seq 1 $NOTES`; do
 		lv2:index @IDX@ ;
 		lv2:symbol "grid_@STEP@_@NOTE@" ;
 		lv2:name "Grid S: @STEP@ N: @NOTE@";
-		lv2:default 0.0 ;
-		lv2:minimum 0.0 ;
-		lv2:maximum 1.0 ;
-		lv2:portProperty lv2:integer, lv2:toggled;
+		lv2:default 0 ;
+		lv2:minimum 0 ;
+		lv2:maximum 127 ;
+		lv2:portProperty lv2:integer;
 EOF
 		echo '<td><div class="togglebtn on"  mod-widget="switch" mod-role="input-control-port" mod-port-symbol="grid_'$s'_'$n'">'$s'</div></td>' >> $MODICON
 	  IDX=$(($IDX + 1))

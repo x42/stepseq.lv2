@@ -115,6 +115,7 @@ typedef struct {
 } StepSeq;
 
 #define NSET(note, step) (*self->p_grid[ (note) * N_STEPS + (step) ] > 0)
+#define NVEL(note, step) ((int)floor(*self->p_grid[ (note) * N_STEPS + (step) ]))
 #define ACTV(note) (self->active[note] > 0)
 #define NOTE(note) (self->notes[note])
 
@@ -291,7 +292,7 @@ beat_machine (StepSeq* self, uint32_t ts, uint32_t step)
 		}
 		if (NSET (n, step) && !ACTV (note)) {
 			/* send note on */
-			forge_note_event (self, ts, note, 127); // TODO maybe use self->grid[] as velocity.
+			forge_note_event (self, ts, note, NVEL(n, step));
 		}
 		else if (!NSET (n, step) && ACTV (note)) {
 			/* send note off */
@@ -310,10 +311,10 @@ beat_machine (StepSeq* self, uint32_t ts, uint32_t step)
 				const uint8_t note = NOTE (n);
 				if (ts > 0) {
 					forge_note_event (self, ts - 1, note, 0);
-					forge_note_event (self, ts, note, 127); // TODO velocity
+					forge_note_event (self, ts, note, NVEL(n, step));
 				} else {
 					forge_note_event (self, ts, note, 0);
-					forge_note_event (self, ts + 1, note, 127); // TODO velocity
+					forge_note_event (self, ts + 1, note, NVEL(n, step));
 				}
 			}
 		}
