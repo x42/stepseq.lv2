@@ -1,4 +1,4 @@
-/* stepseq -- LV2 midi event generator
+/* stepseq -- LV2 midi step sequencer
  *
  * Copyright (C) 2016 Robin Gareus <robin@gareus.org>
  *
@@ -111,6 +111,7 @@ typedef struct {
 
 	uint8_t  notes[N_NOTES];
 	uint8_t  active[127];
+	bool     rolling;
 
 } StepSeq;
 
@@ -474,7 +475,12 @@ run (LV2_Handle instance, uint32_t n_samples)
 			self->bar_beats += n_samples * self->host_bpm * self->host_speed / (60.f * self->sample_rate);
 			/* report only, don't modify state  (stme & step need to remain in sync) */
 			*self->p_step = ((int)floor (self->bar_beats / self->div) % N_STEPS);
-			// TODO: panic (once) when starting to move backwards or stop
+
+			if (self->rolling) {
+				self->rolling = false;
+				midi_panic (self);
+				reset_note_tracker (self);
+			}
 			return;
 		}
 		bpm = self->host_bpm * self->host_speed;
@@ -545,6 +551,7 @@ run (LV2_Handle instance, uint32_t n_samples)
 	}
 
 	self->stme = stme + remain;
+	self->rolling = true;
 
 	*self->p_step = 1 + (self->step % N_STEPS);
 	if (self->host_info) {
