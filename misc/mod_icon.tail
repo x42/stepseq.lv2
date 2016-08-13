@@ -2,10 +2,10 @@
     </div>
 
     <div class="displaybuttons clearfix">
-			<div class="displayradio" x42-role="seq-radio-dpy" onclick="x42_seq_setdisplaymode(this, '{{cns}}', 'nums')">N</div>
-			<div class="displayradio selected" x42-role="seq-radio-dpy" onclick="x42_seq_setdisplaymode(this, '{{cns}}', 'note')">M</div>
-			<div class="displayradio" x42-role="seq-radio-dpy" onclick="x42_seq_setdisplaymode(this, '{{cns}}', 'drum')">D</div>
-		</div>
+      <div class="displayradio" x42-role="seq-radio-dpy" onclick="x42_seq_setdisplaymode(this, '{{cns}}', 'nums')">N</div>
+      <div class="displayradio selected" x42-role="seq-radio-dpy" onclick="x42_seq_setdisplaymode(this, '{{cns}}', 'note')">M</div>
+      <div class="displayradio" x42-role="seq-radio-dpy" onclick="x42_seq_setdisplaymode(this, '{{cns}}', 'drum')">D</div>
+    </div>
 
     <div class="mod-control-group clearfix bottom-group">
         <div class="mod-knob">

@@ -111,15 +111,17 @@
     float:left;
     height: 20px;
     width: 20px;
-		margin: 3px;
-		text-align:center;
+    margin: 3px;
+    text-align:center;
     z-index: 35;
     box-shadow: 2px 2px 2px 0px #000 inset, -2px -2px 2px 1px #888 inset;
+    padding: 2px 0 0 0;
 }
 
 .x42-stepseq{{{cns}}} .displaybuttons .displayradio.selected {
     background-color:#f93;
     box-shadow: 0 -2px 2px 1px #951 inset, -1px -2px 1px 1px #e82 inset;
+    padding: 3px 0 0 0;
 }
 
 /* = KNOBS
