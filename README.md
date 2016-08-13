@@ -18,3 +18,6 @@ Compiling stepseq requires the LV2 SDK, bash, gnu-make, and a c-compiler.
 Note to packagers: The Makefile honors `PREFIX` and `DESTDIR` variables as well
 as `CFLAGS`, `LDFLAGS` and `OPTIMIZATIONS` (additions to `CFLAGS`), also
 see the first 10 lines of the Makefile.
+
+The number of steps and notes can be set at compile time using `N_NOTES`
+and `N_STEPS` make variables. Both should be at least 4. The default is 8x8.
