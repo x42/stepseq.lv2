@@ -1,6 +1,8 @@
 /build
 /modgui/icon-*.html
 /modgui/style-*.css
+/misc/*.xcf
+/misc/16seg
 *.dSYM
 
 *.swp
