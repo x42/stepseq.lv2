@@ -41,7 +41,7 @@ done
 cat misc/mod_icon.head > $MODICON
 
 for n in `seq 1 $NOTES`; do
-	echo '<tr><th><div class="mod-knob-note-image" mod-role="input-control-port" mod-port-symbol="note'$n'"></div></th>' >> $MODICON
+	echo '<tr><th><div class="mod-knob-16seg-image note" mod-role="input-control-port" mod-port-symbol="note'$n'" x42-role="seq-note"></div></th>' >> $MODICON
 	for s in `seq 1 $STEPS`; do
 
 		sed "s/@IDX@/$IDX/;s/@NOTE@/$n/g;s/@STEP@/$s/g" << EOF
@@ -63,7 +63,7 @@ done
 
 cat misc/mod_icon.tail >> $MODICON
 
-WIDTH=$(( 172 + $STEPS * 46 ))
+WIDTH=$(( 190 + $STEPS * 46 ))
 HEIGHT=$(( 160 + $NOTES * 50 ))
 
 sed "s/@WIDTH@/$WIDTH/g;s/@HEIGHT@/$HEIGHT/g" misc/style.css.in > $MODSTYLE

@@ -90,7 +90,7 @@ all: $(BUILDDIR)manifest.ttl $(BUILDDIR)$(LV2NAME).ttl $(targets)
 lv2syms:
 	echo "_lv2_descriptor" > lv2syms
 
-$(BUILDDIR)manifest.ttl: lv2ttl/manifest.ttl.in Makefile
+$(BUILDDIR)manifest.ttl: lv2ttl/manifest.ttl.in lv2ttl/manifest.modgui.in Makefile
 	@mkdir -p $(BUILDDIR)
 	sed "s/@LV2NAME@/$(LV2NAME)/;s/@URISUFFIX@/$(URISUFFIX)/;s/@LIB_EXT@/$(LIB_EXT)/" \
 	  lv2ttl/manifest.ttl.in > $(BUILDDIR)manifest.ttl
@@ -114,7 +114,7 @@ $(BUILDDIR)$(LV2NAME)$(LIB_EXT): src/$(LV2NAME).c Makefile
 	  -shared $(LV2LDFLAGS) $(LDFLAGS) $(LOADLIBES)
 	$(STRIP) $(STRIPFLAGS) $(BUILDDIR)$(LV2NAME)$(LIB_EXT)
 
-$(BUILDDIR)modgui: $(BUILDDIR)$(LV2NAME).ttl
+$(BUILDDIR)modgui: $(BUILDDIR)$(LV2NAME).ttl modgui/
 	@mkdir -p $(BUILDDIR)/modgui
 	cp -r modgui/* $(BUILDDIR)modgui/
 
