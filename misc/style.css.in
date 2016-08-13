@@ -205,10 +205,11 @@
 .x42-stepseq{{{cns}}} .mod-control-group .mod-knob-image {
     background-image:url(/resources/knob.png{{{ns}}});
     background-repeat:no-repeat;
-    background-size:auto 60px;
-    height:60px;
-    width:60px;
+    background-size:auto 44px;
+    height:44px;
+    width:64px;
     margin:0 auto;
+    margin:4px auto 0 auto;
 }
 
 .x42-stepseq{{{cns}}} .mod-control-group .mod-knob-m16-image {

@@ -1,2 +1,6 @@
 .gitignore export-ignore
 .gitattributes export-ignore
+
+/misc/Makefile export-ignore
+/misc/bpmwheel.c export-ignore
+/misc/16seg.c export-ignore

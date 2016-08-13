@@ -3,6 +3,7 @@
 /modgui/style-*.css
 /misc/*.xcf
 /misc/16seg
+/misc/bpmwheel
 *.dSYM
 
 *.swp
