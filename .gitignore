@@ -1,6 +1,7 @@
 /build
 /modgui/icon-*.html
 /modgui/style-*.css
+/modgui/box.png
 /misc/*.xcf
 /misc/16seg
 /misc/bpmwheel

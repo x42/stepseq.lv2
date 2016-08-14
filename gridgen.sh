@@ -63,7 +63,18 @@ done
 
 cat misc/mod_icon.tail >> $MODICON
 
-WIDTH=$(( 190 + $STEPS * 46 ))
-HEIGHT=$(( 160 + $NOTES * 50 ))
+WIDTH=$(( 250 + $STEPS * 46 ))
+HEIGHT=$(( 192 + $NOTES * 46 ))
+
+if test -f misc/box_s${STEPS}_n${NOTES}; then
+	cp misc/box_s${STEPS}_n${NOTES} modgui/box.png
+elif test -x misc/boxmaker; then
+	misc/boxmaker modgui/box.png $STEPS $NOTES
+else
+	echo "*** NO BOX BACKGROUND FOR $STEPS steps, $NOTES notes" >&2
+	echo "*** compile misc/boxmaker for this build-host" >&2
+	echo "*** make -C misc boxmaker" >&2
+	exit 1
+fi
 
 sed "s/@WIDTH@/$WIDTH/g;s/@HEIGHT@/$HEIGHT/g" misc/style.css.in > $MODSTYLE
