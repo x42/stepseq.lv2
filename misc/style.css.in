@@ -135,6 +135,11 @@
     z-index:30;
 }
 
+.x42-stepseq{{{cns}}} .grid-group {
+    top:10px;
+    left:46px;
+}
+
 .x42-stepseq{{{cns}}} .bottom-group {
     margin:10px auto 0 auto;
     width:232px;
@@ -316,6 +321,35 @@
 
 .x42-stepseq{{{cns}}} .buttongrid .togglebtn.off {
     box-shadow: 2px 2px 2px 0px #000 inset, -2px -2px 2px 1px #888 inset;
+}
+
+.x42-stepseq{{{cns}}} .buttongrid .resetbutton {
+    border-radius: 5px;
+    background-color:#444;
+    border-radius: 5px;
+    cursor:default;
+    float:left;
+    font-size:10px;
+    height: 20px;
+    width: 20px;
+    overflow: hidden;
+    padding: 2px 0 0 0;
+    color:white;
+    z-index: 35;
+    text-align:center;
+    box-shadow: 2px 2px 2px 0px #000 inset, -2px -2px 2px 1px #888 inset;
+}
+
+.x42-stepseq{{{cns}}} .buttongrid .resetbutton.col {
+    margin: 13px 13px 0 13px;
+}
+
+.x42-stepseq{{{cns}}} .buttongrid .resetbutton.row {
+    margin: 13px 0 13px 13px;
+}
+
+.x42-stepseq{{{cns}}} .buttongrid .resetbutton.all {
+    margin: 13px 13px 0 13px;
 }
 
 /* = COLORS

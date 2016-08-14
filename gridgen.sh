@@ -55,11 +55,19 @@ for n in `seq 1 $NOTES`; do
 		lv2:maximum 127 ;
 		lv2:portProperty lv2:integer;
 EOF
-		echo '<td><div class="togglebtn on"  mod-widget="switch" mod-role="input-control-port" mod-port-symbol="grid_'$s'_'$n'">'$s'</div></td>' >> $MODICON
+		echo '<td><div class="togglebtn on" grid-col="'$s'" grid-row="'$n'" mod-widget="switch" mod-role="input-control-port" mod-port-symbol="grid_'$s'_'$n'">'$s'</div></td>' >> $MODICON
 	  IDX=$(($IDX + 1))
 	done
+	echo '<td><div class="resetbutton row" grid-row="'$n'">C</div></td>' >> $MODICON
 	echo '</tr>' >> $MODICON
 done
+
+echo '<tr><th></th>' >> $MODICON
+for s in `seq 1 $STEPS`; do
+	echo '<td><div class="resetbutton col" grid-col="'$s'">C</div></td>' >> $MODICON
+done
+echo '<td><div class="resetbutton all">C</div></td>' >> $MODICON
+echo '</tr>' >> $MODICON
 
 cat misc/mod_icon.tail >> $MODICON
 

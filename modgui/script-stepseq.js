@@ -24,4 +24,17 @@ function (event) {
 		event.icon.find ("[x42-role=seq-note]").addClass ("drum");
 	});
 
+	event.icon.find("div.resetbutton.col").click(function(){
+		var c = $(this).attr('grid-col');
+		event.icon.find("[mod-role=input-control-port][grid-col="+c+"]").controlWidget('setValue', 0);
+	});
+
+	event.icon.find("div.resetbutton.row").click(function(){
+		var r = $(this).attr('grid-row');
+		event.icon.find("[mod-role=input-control-port][grid-row="+r+"]").controlWidget('setValue', 0);
+	});
+
+	event.icon.find("div.resetbutton.all").click(function(){
+		event.icon.find("[mod-role=input-control-port][grid-row]").controlWidget('setValue', 0);
+	});
 }

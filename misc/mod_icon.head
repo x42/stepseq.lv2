@@ -6,6 +6,6 @@
     <div class="mod-light on" mod-role="bypass-light"></div>
     <div class="mod-footswitch" mod-role="bypass"></div>
 
-    <div class="mod-control-group clearfix">
+    <div class="mod-control-group clearfix grid-group">
         <table class="buttongrid">
 
