@@ -58,15 +58,15 @@ EOF
 		echo '<td><div class="togglebtn on" grid-col="'$s'" grid-row="'$n'" mod-widget="switch" mod-role="input-control-port" mod-port-symbol="grid_'$s'_'$n'">'$s'</div></td>' >> $MODICON
 	  IDX=$(($IDX + 1))
 	done
-	echo '<td><div class="resetbutton row" grid-row="'$n'">C</div></td>' >> $MODICON
+	echo '<td><div class="resetbutton row" grid-row="'$n'" title="Clear Note Row">C</div></td>' >> $MODICON
 	echo '</tr>' >> $MODICON
 done
 
 echo '<tr><th></th>' >> $MODICON
 for s in `seq 1 $STEPS`; do
-	echo '<td><div class="resetbutton col" grid-col="'$s'">C</div></td>' >> $MODICON
+	echo '<td><div class="resetbutton col" grid-col="'$s'" title="Clear Column Step:'$s'">C</div></td>' >> $MODICON
 done
-echo '<td><div class="resetbutton all">C</div></td>' >> $MODICON
+echo '<td><div class="resetbutton all" title="Clear Grid">C</div></td>' >> $MODICON
 echo '</tr>' >> $MODICON
 
 cat misc/mod_icon.tail >> $MODICON
