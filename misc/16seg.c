@@ -334,53 +334,53 @@ static void gen_note (const char* fn, int h) {
 }
 
 static const char *mdrums[] = {
-      "Kik2", // "Bass Drum 2"  #35
-      "Kik1", // "Bass Drum 1"
-      "Rims", // "Side Stick/Rimshot"
-      "Sna1", // "Snare Drum 1"
+      "BD 2", // "Bass Drum 2"  #35
+      "BD 1", // "Bass Drum 1"
+      "SNrs", // "Side Stick/Rimshot"
+      "SD 1", // "Snare Drum 1"
       "Clap", // "Hand Clap"
-      "Sna2", // "Snare Drum 2"
-      "Tom2", // "Low Tom 2"
+      "SD 2", // "Snare Drum 2"
+      "lTm2", // "Low Tom 2"
       "HH C", // "Closed Hi-hat"
-      "Tom1", // "Low Tom 1"
+      "lTm1", // "Low Tom 1"
       "HH P", // "Pedal Hi-hat"
-      "Tom2", // "Mid Tom 2"
+      "mTm2", // "Mid Tom 2"
       "HH O", // "Open Hi-hat"
-      "Tom1", // "Mid Tom 1"
-      "Tom2", // "High Tom 2"
+      "mTm1", // "Mid Tom 1"
+      "hTm2", // "High Tom 2"
       "Crs1", // "Crash Cymbal 1"
-      "Tom1", // "High Tom 1"
-      "Ride", // "Ride Cymbal 1"
+      "hTm1", // "High Tom 1"
+      "RCy1", // "Ride Cymbal 1"
       "Chin", // "Chinese Cymbal"
-      "RidB", // "Ride Bell"
-      "Tamp", // "Tambourine"
-      "Spla", // "Splash Cymbal"
+      "RCyB", // "Ride Bell"
+      "Tamb", // "Tambourine"
+      "Spls", // "Splash Cymbal"
       "Cowb", // "Cowbell"
       "Crs2", // "Crash Cymbal 2"
       "Slap", // "Vibra Slap"
-      "Rid2", // "Ride Cymbal 2"
-      "HBon", // "High Bongo"
-      "LBon", // "Low Bongo"
-      "MCon", // "Mute High Conga"
-      "OCon", // "Open High Conga"
-      "LCon", // "Low Conga"
-      "HTim", // "High Timbale"
-      "LTim", // "Low Timbale"
-      "HAgo", // "High Agogô"
-      "LAgo", // "Low Agogô"
-      "Caba", // "Cabasa"
+      "RCy2", // "Ride Cymbal 2"
+      "hBon", // "High Bongo"
+      "lBon", // "Low Bongo"
+      "mCng", // "Mute High Conga"
+      "oCng", // "Open High Conga"
+      "lCng", // "Low Conga"
+      "hTim", // "High Timbale"
+      "lTim", // "Low Timbale"
+      "hAgo", // "High Agogô"
+      "lAgo", // "Low Agogô"
+      "Cbsa", // "Cabasa"
       "Mara", // "Maracas"
-      "S Ws", // "Short Whistle"
-      "L Ws", // "Long Whistle"
-      "SGui", // "Short Güiro"
-      "LGui", // "Long Güiro"
+      "s Ws", // "Short Whistle"
+      "l Ws", // "Long Whistle"
+      "sGro", // "Short Güiro"
+      "lGro", // "Long Güiro"
       "Clav", // "Claves"
-      "H WB", // "High Wood Block"
-      "L WB", // "Low Wood Block"
-      "MCui", // "Mute Cuíca"
-      "OCui", // "Open Cuíca"
-      "MTri", // "Mute Triangle"
-      "OTri"  // "Open Triangle"
+      "h WB", // "High Wood Block"
+      "l WB", // "Low Wood Block"
+      "mCui", // "Mute Cuíca"
+      "oCui", // "Open Cuíca"
+      "mTri", // "Mute Triangle"
+      "oTri"  // "Open Triangle"
 };
 
 /** General MIDI Drum names */
@@ -402,10 +402,10 @@ static void gen_drum (const char* fn, int h) {
 		cairo_translate (cr, s * bw, 0);
 
 		char txt[7];
-		if (s < 32 || s > 81) {
+		if (s < 35 || s > 81) {
 			snprintf (txt, 16, "D%3d", s);
 		} else {
-			snprintf (txt, 16, "%4s", mdrums[s-32]);
+			snprintf (txt, 16, "%4s", mdrums[s-35]);
 		}
 
 		ssdt (cr, h, txt);
