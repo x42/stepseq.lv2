@@ -74,8 +74,8 @@ cat misc/mod_icon.tail >> $MODICON
 WIDTH=$(( 250 + $STEPS * 46 ))
 HEIGHT=$(( 192 + $NOTES * 46 ))
 
-if test -f misc/box_s${STEPS}_n${NOTES}; then
-	cp misc/box_s${STEPS}_n${NOTES} modgui/box.png
+if test -f misc/box_s${STEPS}_n${NOTES}.png; then
+	cp misc/box_s${STEPS}_n${NOTES}.png modgui/box.png
 elif test -x misc/boxmaker; then
 	misc/boxmaker modgui/box.png $STEPS $NOTES
 else
