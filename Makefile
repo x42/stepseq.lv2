@@ -4,42 +4,67 @@
 #   make CFLAGS=-O2
 #   make install DESTDIR=$(CURDIR)/debian/stepseq.lv2 PREFIX=/usr
 #
-OPTIMIZATIONS ?= -msse -msse2 -mfpmath=sse -ffast-math -fomit-frame-pointer -O3 -fno-finite-math-only
 PREFIX ?= /usr/local
-CFLAGS ?= $(OPTIMIZATIONS) -Wall
-LIBDIR ?= lib
-LV2DIR ?= $(PREFIX)/$(LIBDIR)/lv2
+BINDIR ?= $(PREFIX)/bin
+MANDIR ?= $(PREFIX)/share/man/man1
+LV2DIR ?= $(PREFIX)/lib/lv2
+
+OPTIMIZATIONS ?= -msse -msse2 -mfpmath=sse -ffast-math -fomit-frame-pointer -O3 -fno-finite-math-only
+CFLAGS ?= -Wall -g -Wno-unused-function
+STRIP  ?= strip
 
 # grid-size (should be at least 4x4 for the MOD-GUI)
 N_NOTES ?= 8
 N_STEPS ?= 8
 
-STRIP?=strip
 STRIPFLAGS?=-s
 
+BUILDOPENGL?=yes
+BUILDJACKAPP?=no # needs lv2ttl2c for N_NOTES, N_STEPS
+
 stepseq_VERSION?=$(shell git describe --tags HEAD 2>/dev/null | sed 's/-g.*$$//;s/^v//' || echo "LV2")
+RW ?= robtk/
+
 ###############################################################################
-LIB_EXT=.so
-BUILDDIR=build/
+
+BUILDDIR = build/
+APPBLD   = x42/
+
+###############################################################################
 
 LOADLIBES=-lm
 LV2NAME=stepseq
+LV2GUI=stepseqUI_gl
 BUNDLE=stepseq.lv2
 URISUFFIX=s$(N_STEPS)n$(N_NOTES)
 NAMESUFFIX=$(N_STEPS)x$(N_NOTES)
 
 targets=
 
+STRIPFLAGS=-s
+GLUICFLAGS=-I.
+
 UNAME=$(shell uname)
 ifeq ($(UNAME),Darwin)
   LV2LDFLAGS=-dynamiclib
   LIB_EXT=.dylib
+  EXE_EXT=
+  UI_TYPE=ui:CocoaUI
+  PUGL_SRC=$(RW)pugl/pugl_osx.m
+  PKG_GL_LIBS=
+  GLUILIBS=-framework Cocoa -framework OpenGL -framework CoreFoundation
+  STRIPFLAGS=-u -r -arch all -s $(RW)lv2syms
   EXTENDED_RE=-E
-  STRIPFLAGS=-u -r -arch all -s lv2syms
-  targets+=lv2syms
 else
-  LV2LDFLAGS=-Wl,-Bstatic -Wl,-Bdynamic
+  LV2LDFLAGS=-Wl,-Bstatic -Wl,-Bdynamic -Wl,--as-needed
   LIB_EXT=.so
+  EXE_EXT=
+  UI_TYPE=ui:X11UI
+  PUGL_SRC=$(RW)pugl/pugl_x11.c
+  PKG_GL_LIBS=glu gl
+  GLUILIBS=-lX11
+  GLUICFLAGS+=`pkg-config --cflags glu`
+  STRIPFLAGS= -s
   EXTENDED_RE=-r
 endif
 
@@ -48,10 +73,32 @@ ifneq ($(XWIN),)
   STRIP=$(XWIN)-strip
   LV2LDFLAGS=-Wl,-Bstatic -Wl,-Bdynamic -Wl,--as-needed
   LIB_EXT=.dll
+  EXE_EXT=.exe
+  PUGL_SRC=$(RW)pugl/pugl_win.cpp
+  PKG_GL_LIBS=
+  UI_TYPE=
+  GLUILIBS=-lws2_32 -lwinmm -lopengl32 -lglu32 -lgdi32 -lcomdlg32
+  GLUICFLAGS=-I.
   override LDFLAGS += -static-libgcc -static-libstdc++
 endif
 
+ifeq ($(EXTERNALUI), yes)
+  UI_TYPE=
+endif
+
+ifeq ($(UI_TYPE),)
+  UI_TYPE=kx:Widget
+  LV2UIREQ+=lv2:requiredFeature kx:Widget;
+  override CFLAGS += -DXTERNAL_UI
+endif
+
 targets+=$(BUILDDIR)$(LV2NAME)$(LIB_EXT)
+
+UITTL=
+ifneq ($(BUILDOPENGL), no)
+  targets+=$(BUILDDIR)$(LV2GUI)$(LIB_EXT)
+  UITTL=ui:ui $(LV2NAME):ui_gl ;
+endif
 
 ifneq ($(MOD),)
   targets+=$(BUILDDIR)modgui
@@ -74,26 +121,107 @@ ifeq ($(shell pkg-config --exists lv2 || echo no), no)
   $(error "LV2 SDK was not found")
 endif
 
+ifneq ($(BUILDOPENGL)$(BUILDJACKAPP), nono)
+ ifeq ($(shell pkg-config --exists pango cairo $(PKG_GL_LIBS) || echo no), no)
+  $(error "This plugin requires cairo pango $(PKG_GL_LIBS)")
+ endif
+endif
+
+ifneq ($(BUILDJACKAPP), no)
+ ifeq ($(shell pkg-config --exists jack || echo no), no)
+  $(warning *** libjack from http://jackaudio.org is required)
+  $(error   Please install libjack-dev or libjack-jackd2-dev)
+ endif
+ JACKAPP=$(APPBLD)x42-stepseq$(EXE_EXT)
+endif
+
 # check for lv2_atom_forge_object  new in 1.8.1 deprecates lv2_atom_forge_blank
 ifeq ($(shell pkg-config --atleast-version=1.8.1 lv2 && echo yes), yes)
   override CFLAGS += -DHAVE_LV2_1_8
 endif
 
-override CFLAGS += -fPIC -std=c99
+ifneq ($(BUILDOPENGL)$(BUILDJACKAPP), nono)
+ ifneq ($(MAKECMDGOALS), submodules)
+  ifeq ($(wildcard $(RW)robtk.mk),)
+    $(warning "**********************************************************")
+    $(warning This plugin needs https://github.com/x42/robtk)
+    $(warning "**********************************************************")
+    $(info )
+    $(info set the RW environment variale to the location of the robtk headers)
+    ifeq ($(wildcard .git),.git)
+      $(info or run 'make submodules' to initialize robtk as git submodule)
+    endif
+    $(info )
+    $(warning "**********************************************************")
+    $(error robtk not found)
+  endif
+ endif
+endif
+
+# LV2 idle >= lv2-1.6.0
+GLUICFLAGS+=-DHAVE_IDLE_IFACE
+LV2UIREQ+=lv2:requiredFeature ui:idleInterface; lv2:extensionData ui:idleInterface;
+
+# add library dependent flags and libs
+override CFLAGS += $(OPTIMIZATIONS) -DVERSION="\"$(fat1_VERSION)\""
 override CFLAGS += `pkg-config --cflags lv2`
+
+ifeq ($(XWIN),)
+override CFLAGS += -fPIC -fvisibility=hidden
+else
+override CFLAGS += -DPTW32_STATIC_LIB
+endif
+override LOADLIBES += `pkg-config --libs lv2`
+
+
+GLUICFLAGS+=`pkg-config --cflags cairo pango` $(CFLAGS)
+GLUILIBS+=`pkg-config $(PKG_UI_FLAGS) --libs cairo pango pangocairo $(PKG_GL_LIBS)`
+
+ifneq ($(XWIN),)
+GLUILIBS+=-lpthread -lusp10
+endif
+
+GLUICFLAGS+=$(LIC_CFLAGS)
+GLUILIBS+=$(LIC_LOADLIBES)
+
+
+ifneq ($(LIC_CFLAGS),)
+	SIGNATURE=lv2:extensionData <http:\\/\\/harrisonconsoles.com\\/lv2\\/license\#interface>\\;
+  override CFLAGS += -I$(RW)
+endif
+
+ROBGL+= Makefile
+
+JACKCFLAGS=-I. $(CFLAGS) $(LIC_CFLAGS)
+JACKCFLAGS+=`pkg-config --cflags jack lv2 pango pangocairo $(PKG_GL_LIBS)`
+JACKLIBS=-lm $(GLUILIBS) $(LIC_LOADLIBES) $(LOADLIBES)
+
 
 # build target definitions
 default: all
 
-all: $(BUILDDIR)manifest.ttl $(BUILDDIR)$(LV2NAME).ttl $(targets)
+submodule_pull:
+	-test -d .git -a .gitmodules -a -f Makefile.git && $(MAKE) -f Makefile.git submodule_pull
 
-lv2syms:
-	echo "_lv2_descriptor" > lv2syms
+submodule_update:
+	-test -d .git -a .gitmodules -a -f Makefile.git && $(MAKE) -f Makefile.git submodule_update
+
+submodule_check:
+	-test -d .git -a .gitmodules -a -f Makefile.git && $(MAKE) -f Makefile.git submodule_check
+
+submodules:
+	-test -d .git -a .gitmodules -a -f Makefile.git && $(MAKE) -f Makefile.git submodules
+
+all: submodule_check $(BUILDDIR)manifest.ttl $(BUILDDIR)$(LV2NAME).ttl $(targets) $(JACKAPP)
 
 $(BUILDDIR)manifest.ttl: lv2ttl/manifest.ttl.in lv2ttl/manifest.modgui.in Makefile
 	@mkdir -p $(BUILDDIR)
-	sed "s/@LV2NAME@/$(LV2NAME)/;s/@URISUFFIX@/$(URISUFFIX)/;s/@LIB_EXT@/$(LIB_EXT)/" \
+	sed "s/@LV2NAME@/$(LV2NAME)/g;s/@URISUFFIX@/$(URISUFFIX)/;s/@LIB_EXT@/$(LIB_EXT)/" \
 	  lv2ttl/manifest.ttl.in > $(BUILDDIR)manifest.ttl
+ifneq ($(BUILDOPENGL), no)
+	sed "s/@LV2NAME@/$(LV2NAME)/g;s/@URISUFFIX@/$(URISUFFIX)/;s/@LIB_EXT@/$(LIB_EXT)/;s/@UI_TYPE@/$(UI_TYPE)/;s/@LV2GUI@/$(LV2GUI)/g" \
+		lv2ttl/manifest.gui.in >> $(BUILDDIR)manifest.ttl
+endif
 ifneq ($(MOD),)
 	sed "s/@LV2NAME@/$(LV2NAME)/;s/@URISUFFIX@/$(URISUFFIX)/;s/@MODBRAND@/$(MODGUIBRAND)/;s/@MODLABEL@/$(MODGUILABEL)/" \
 		lv2ttl/manifest.modgui.in >> $(BUILDDIR)manifest.ttl
@@ -101,44 +229,106 @@ endif
 
 $(BUILDDIR)$(LV2NAME).ttl: lv2ttl/$(LV2NAME).ttl.in Makefile gridgen.sh misc/mod_icon.head misc/mod_icon.tail misc/style.css.in
 	@mkdir -p $(BUILDDIR)
-	sed "s/@LV2NAME@/$(LV2NAME)/;s/@NAMESUFFIX@/$(NAMESUFFIX)/;s/@URISUFFIX@/$(URISUFFIX)/;s/@VERSION@/lv2:microVersion $(LV2MIC) ;lv2:minorVersion $(LV2MIN) ;/g;s/@MODBRAND@/$(MODBRAND)/;s/@MODLABEL@/$(MODLABEL)/;s/@STEPS@/$(N_STEPS)/" \
+	sed "s/@LV2NAME@/$(LV2NAME)/g;s/@SIGNATURE@/$(SIGNATURE)/;s/@NAMESUFFIX@/$(NAMESUFFIX)/;s/@URISUFFIX@/$(URISUFFIX)/;s/@VERSION@/lv2:microVersion $(LV2MIC) ;lv2:minorVersion $(LV2MIN) ;/g;s/@UITTL@/$(UITTL)/;s/@MODBRAND@/$(MODBRAND)/;s/@MODLABEL@/$(MODLABEL)/;s/@STEPS@/$(N_STEPS)/" \
 		lv2ttl/$(LV2NAME).ttl.in > $(BUILDDIR)$(LV2NAME).ttl
 	./gridgen.sh $(N_NOTES) $(N_STEPS) >> $(BUILDDIR)$(LV2NAME).ttl
 	echo "]; ." >> $(BUILDDIR)$(LV2NAME).ttl
+ifneq ($(BUILDOPENGL), no)
+	sed "s/@LV2NAME@/$(LV2NAME)/g;s/@URISUFFIX@/$(URISUFFIX)/;s/@UI_TYPE@/$(UI_TYPE)/;s/@UI_REQ@/$(LV2UIREQ)/" \
+	    lv2ttl/$(LV2NAME).gui.in >> $(BUILDDIR)$(LV2NAME).ttl
+endif
 
-$(BUILDDIR)$(LV2NAME)$(LIB_EXT): src/$(LV2NAME).c Makefile
+override CFLAGS+= -DN_NOTES=$(N_NOTES) -DN_STEPS=$(N_STEPS)
+
+DSP_SRC = src/$(LV2NAME).c
+DSP_DEPS = $(DSP_SRC)
+GUI_DEPS = gui/$(LV2NAME).c
+
+$(BUILDDIR)$(LV2NAME)$(LIB_EXT): $(DSP_DEPS) Makefile
 	@mkdir -p $(BUILDDIR)
-	$(CC) $(CPPFLAGS) $(CFLAGS) \
-	  -DN_NOTES=$(N_NOTES) -DN_STEPS=$(N_STEPS) \
-	  -o $(BUILDDIR)$(LV2NAME)$(LIB_EXT) src/$(LV2NAME).c \
-	  -shared $(LV2LDFLAGS) $(LDFLAGS) $(LOADLIBES)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LIC_CFLAGS) -std=c99 \
+	  -o $(BUILDDIR)$(LV2NAME)$(LIB_EXT) $(DSP_SRC) \
+	  -shared $(LV2LDFLAGS) $(LDFLAGS) $(LOADLIBES) $(LIC_LOADLIBES)
 	$(STRIP) $(STRIPFLAGS) $(BUILDDIR)$(LV2NAME)$(LIB_EXT)
+
+jackapps: $(JACKAPP)
+
+$(eval x42_stepseq_JACKSRC = src/stepseq.c)
+x42_stepseq_JACKGUI = gui/stepseq.c
+x42_stepseq_LV2HTTL = lv2ttl/stepseq.h
+x42_stepseq_JACKDESC = lv2ui_descriptor
+$(APPBLD)x42-stepseq$(EXE_EXT): $(DSP_DEPS) $(GUI_DEPS) \
+	        $(x42_stepseq_JACKGUI) $(x42_stepseq_LV2HTTL)
+
+ifneq ($(BUILDOPENGL)$(BUILDJACKAPP), nono)
+ -include $(RW)robtk.mk
+endif
+
+$(BUILDDIR)$(LV2GUI)$(LIB_EXT): gui/$(LV2NAME).c
 
 $(BUILDDIR)modgui: $(BUILDDIR)$(LV2NAME).ttl modgui/
 	@mkdir -p $(BUILDDIR)/modgui
 	cp -r modgui/* $(BUILDDIR)modgui/
 
+###############################################################################
 # install/uninstall/clean target definitions
 
-install: all
+install: install-bin install-man
+
+uninstall: uninstall-bin uninstall-man
+
+install-bin: all
 	install -d $(DESTDIR)$(LV2DIR)/$(BUNDLE)
-	install -m755 $(BUILDDIR)$(LV2NAME)$(LIB_EXT) $(DESTDIR)$(LV2DIR)/$(BUNDLE)
 	install -m644 $(BUILDDIR)manifest.ttl $(BUILDDIR)$(LV2NAME).ttl $(DESTDIR)$(LV2DIR)/$(BUNDLE)
+	install -m755 $(BUILDDIR)$(LV2NAME)$(LIB_EXT) $(DESTDIR)$(LV2DIR)/$(BUNDLE)
+ifneq ($(BUILDOPENGL), no)
+	install -m755 $(BUILDDIR)$(LV2GUI)$(LIB_EXT) $(DESTDIR)$(LV2DIR)/$(BUNDLE)
+endif
+ifneq ($(BUILDJACKAPP), no)
+	install -d $(DESTDIR)$(BINDIR)
+	install -m755 $(APPBLD)x42-stepseq$(EXE_EXT) $(DESTDIR)$(BINDIR)
+endif
 ifneq ($(MOD),)
 	install -d $(DESTDIR)$(LV2DIR)/$(BUNDLE)/modgui
 	install -t $(DESTDIR)$(LV2DIR)/$(BUNDLE)/modgui $(BUILDDIR)modgui/*
 endif
 
-uninstall:
+uninstall-bin:
 	rm -f $(DESTDIR)$(LV2DIR)/$(BUNDLE)/manifest.ttl
 	rm -f $(DESTDIR)$(LV2DIR)/$(BUNDLE)/$(LV2NAME).ttl
 	rm -f $(DESTDIR)$(LV2DIR)/$(BUNDLE)/$(LV2NAME)$(LIB_EXT)
+	rm -f $(DESTDIR)$(LV2DIR)/$(BUNDLE)/$(LV2GUI)$(LIB_EXT)
 	rm -rf $(DESTDIR)$(LV2DIR)/$(BUNDLE)/modgui
+	rm -f $(DESTDIR)$(BINDIR)/x42-stepseq$(EXE_EXT)
 	-rmdir $(DESTDIR)$(LV2DIR)/$(BUNDLE)
+	-rmdir $(DESTDIR)$(BINDIR)
+
+install-man:
+ifneq ($(BUILDJACKAPP), no)
+	install -d $(DESTDIR)$(MANDIR)
+	install -m644 x42-stepseq.1 $(DESTDIR)$(MANDIR)
+endif
+
+uninstall-man:
+	rm -f $(DESTDIR)$(MANDIR)/x42-stepseq.1
+	-rmdir $(DESTDIR)$(MANDIR)
+
+man: $(APPBLD)x42-stepseq
+	help2man -N -o x42-stepseq.1 -n "x42 Step Sequencer" $(APPBLD)x42-stepseq
 
 clean:
-	rm -f $(BUILDDIR)manifest.ttl $(BUILDDIR)$(LV2NAME).ttl $(BUILDDIR)$(LV2NAME)$(LIB_EXT) lv2syms
+	rm -f $(BUILDDIR)manifest.ttl $(BUILDDIR)$(LV2NAME).ttl \
+		$(BUILDDIR)$(LV2NAME)$(LIB_EXT) \
+		$(BUILDDIR)$(LV2GUI)$(LIB_EXT)
+	rm -rf $(BUILDDIR)*.dSYM
+	rm -rf $(APPBLD)x42-*
 	rm -rf $(BUILDDIR)modgui
+	-test -d $(APPBLD) && rmdir $(APPBLD) || true
 	-test -d $(BUILDDIR) && rmdir $(BUILDDIR) || true
 
-.PHONY: clean all install uninstall
+distclean: clean
+	rm -f cscope.out cscope.files tags
+
+.PHONY: clean all install uninstall distclean jackapps man \
+        install-bin uninstall-bin install-man uninstall-man \
+        submodule_check submodules submodule_update submodule_pull

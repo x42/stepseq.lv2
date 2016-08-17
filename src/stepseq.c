@@ -32,21 +32,7 @@
 #include "lv2/lv2plug.in/ns/ext/time/time.h"
 #include <lv2/lv2plug.in/ns/ext/urid/urid.h>
 
-#define xstr(s) str(s)
-#define str(s) #s
-#define SEQ_URI "http://gareus.org/oss/lv2/stepseq#s" xstr(N_STEPS) "n" xstr(N_NOTES)
-
-enum {
-	PORT_CTRL_IN = 0,
-	PORT_MIDI_OUT,
-	PORT_SYNC,
-	PORT_BPM,
-	PORT_DIVIDER,
-	PORT_CHN,
-	PORT_PANIC,
-	PORT_STEP,
-	PORT_NOTES
-};
+#include "stepseq.h"
 
 typedef struct {
 	LV2_URID atom_Blank;
