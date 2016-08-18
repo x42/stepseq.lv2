@@ -20,7 +20,8 @@ N_STEPS ?= 8
 STRIPFLAGS?=-s
 
 BUILDOPENGL?=yes
-BUILDJACKAPP?=no # needs lv2ttl2c for N_NOTES, N_STEPS
+# jack_app needs lv2ttl2c for N_NOTES, N_STEPS
+BUILDJACKAPP?=no
 
 stepseq_VERSION?=$(shell git describe --tags HEAD 2>/dev/null | sed 's/-g.*$$//;s/^v//' || echo "LV2")
 RW ?= robtk/
@@ -241,7 +242,7 @@ endif
 override CFLAGS+= -DN_NOTES=$(N_NOTES) -DN_STEPS=$(N_STEPS)
 
 DSP_SRC = src/$(LV2NAME).c
-DSP_DEPS = $(DSP_SRC)
+DSP_DEPS = $(DSP_SRC) src/$(LV2NAME).h
 GUI_DEPS = gui/$(LV2NAME).c
 
 $(BUILDDIR)$(LV2NAME)$(LIB_EXT): $(DSP_DEPS) Makefile
