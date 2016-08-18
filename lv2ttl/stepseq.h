@@ -10,13 +10,15 @@ static const RtkLv2Description _plugin = {
 	, 0 // uint32_t dsp_descriptor_id
 	, 0 // uint32_t gui_descriptor_id
 	, "MIDI Step Sequencer8x8" // const char *plugin_human_id
-	, (const struct LV2Port[80])
+	, (const struct LV2Port[82])
 	{
 		{ "control", ATOM_IN, nan, nan, nan, "Control Input"},
 		{ "midiout", MIDI_OUT, nan, nan, nan, "MIDI Out"},
 		{ "sync", CONTROL_IN, 0.000000, 0.000000, 1.000000, "Sync"},
 		{ "bpm", CONTROL_IN, 120.000000, 40.000000, 208.000000, "BPM"},
 		{ "div", CONTROL_IN, 3.000000, 0.000000, 9.000000, "Step Duration (4/4)"},
+		{ "swing", CONTROL_IN, 0.000000, 0.000000, 0.500000, "Swing"},
+		{ "drummode", CONTROL_IN, 0.000000, 0.000000, 1.000000, "Drum Mode"},
 		{ "chn", CONTROL_IN, 0.000000, 0.000000, 15.000000, "Midi Channel"},
 		{ "panic", CONTROL_IN, 0.000000, 0.000000, 1.000000, "MIDI Panic"},
 		{ "pos", CONTROL_OUT, nan, 1.000000, 8.000000, "Step Position"},
@@ -93,15 +95,15 @@ static const RtkLv2Description _plugin = {
 		{ "grid_7_8", CONTROL_IN, 0.000000, 0.000000, 127.000000, "Grid S: 7 N: 8"},
 		{ "grid_8_8", CONTROL_IN, 0.000000, 0.000000, 127.000000, "Grid S: 8 N: 8"},
 	}
-	, 80 // uint32_t nports_total
+	, 82 // uint32_t nports_total
 	, 0 // uint32_t nports_audio_in
 	, 0 // uint32_t nports_audio_out
 	, 0 // uint32_t nports_midi_in
 	, 1 // uint32_t nports_midi_out
 	, 1 // uint32_t nports_atom_in
 	, 0 // uint32_t nports_atom_out
-	, 78 // uint32_t nports_ctrl
-	, 77 // uint32_t nports_ctrl_in
+	, 80 // uint32_t nports_ctrl
+	, 79 // uint32_t nports_ctrl_in
 	, 1 // uint32_t nports_ctrl_out
 	, 8192 // uint32_t min_atom_bufsiz
 	, true // bool send_time_info

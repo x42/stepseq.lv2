@@ -89,6 +89,27 @@
 	] , [
 		a lv2:InputPort, lv2:ControlPort;
 		lv2:index 5;
+		lv2:symbol "swing";
+		lv2:name "Swing";
+		lv2:minimum 0.0;
+		lv2:default 0.0;
+		lv2:maximum 0.5;
+		lv2:scalePoint [ rdfs:label "No";         rdf:value 0.0 ; ] ;
+		lv2:scalePoint [ rdfs:label "Light 3:2";  rdf:value 0.2 ; ] ;
+		lv2:scalePoint [ rdfs:label "Medium 2:1"; rdf:value 0.33334 ; ] ;
+		lv2:scalePoint [ rdfs:label "Hard 3:1";   rdf:value 0.5 ; ] ;
+	] , [
+		a lv2:InputPort, lv2:ControlPort;
+		lv2:index 6;
+		lv2:symbol "drummode";
+		lv2:name "Drum Mode";
+		lv2:minimum 0;
+		lv2:default 0;
+		lv2:maximum 1;
+		lv2:portProperty lv2:integer, lv2:toggled;
+	] , [
+		a lv2:InputPort, lv2:ControlPort;
+		lv2:index 7;
 		lv2:symbol "chn";
 		lv2:name "Midi Channel";
 		lv2:minimum 0;
@@ -98,7 +119,7 @@
 	] , [
 		a lv2:InputPort ,
 			lv2:ControlPort ;
-		lv2:index 6 ;
+		lv2:index 8 ;
 		lv2:symbol "panic" ;
 		lv2:name "MIDI Panic";
 		lv2:default 0 ;
@@ -107,7 +128,7 @@
 		lv2:portProperty lv2:integer, lv2:toggled, pprop:trigger;
 	] , [
 		a lv2:OutputPort, lv2:ControlPort ;
-		lv2:index 7;
+		lv2:index 9;
 		lv2:symbol "pos";
 		lv2:name "Step Position";
 		lv2:minimum 1;

@@ -58,6 +58,8 @@ typedef struct {
 	float* p_sync;
 	float* p_bpm;
 	float* p_div;
+	float* p_swing;
+	float* p_drum;
 	float* p_chn;
 	float* p_panic;
 	float* p_step;
@@ -82,6 +84,9 @@ typedef struct {
 	/* Settings */
 	float sample_rate; // samples per second
 	float sps; // samples per step
+
+	float swing;
+	bool  drum_mode;
 
 	/* Host Time */
 	bool     host_info;
@@ -277,7 +282,19 @@ beat_machine (StepSeq* self, uint32_t ts, uint32_t step)
 		if (note > 127) {
 			continue;
 		}
-		if (NSET (n, step) && !ACTV (note)) {
+
+		if (NSET (n, step) && ACTV (note) && self->drum_mode) {
+			/* retrigger */
+			const uint8_t note = NOTE (n);
+			if (ts > 0) {
+				forge_note_event (self, ts - 1, note, 0);
+				forge_note_event (self, ts, note, NVEL(n, step));
+			} else {
+				forge_note_event (self, ts, note, 0);
+				forge_note_event (self, ts + 1, note, NVEL(n, step));
+			}
+		}
+		else if (NSET (n, step) && !ACTV (note)) {
 			/* send note on */
 			forge_note_event (self, ts, note, NVEL(n, step));
 		}
@@ -305,6 +322,20 @@ beat_machine (StepSeq* self, uint32_t ts, uint32_t step)
 				}
 			}
 		}
+	}
+}
+
+float calc_next_step (StepSeq* self) {
+	const bool eighth = self->div == 0.5;
+	const uint32_t step = self->step;
+	if (eighth && (step & 1) == 0) {
+		/* add 0.2 -> "3:2 light swing  -- long eighth + short eighth"
+		 * add 1/3 -> "2:1 medium swing -- triplet quarter note + triplet eighth"
+		 * add 1/2 -> "3:1 hard swing   -- dotted eighth note + sixteenth note"
+		 */
+		return (step + 1) * self->sps + self->swing * self->sps;
+	} else {
+		return (step + 1) * self->sps;
 	}
 }
 
@@ -345,6 +376,9 @@ instantiate (const LV2_Descriptor*     descriptor,
 	self->div = .5f;
 	self->sps = self->sample_rate * 60.f * self->div / self->bpm;
 
+	self->step = N_STEPS - 1;
+	self->stme = N_STEPS * self->sps;
+
 	reset_note_tracker (self);
 
 	return (LV2_Handle)self;
@@ -372,6 +406,12 @@ connect_port (LV2_Handle instance,
 			break;
 		case PORT_DIVIDER:
 			self->p_div = (float*)data;
+			break;
+		case PORT_SWING:
+			self->p_swing = (float*)data;
+			break;
+		case PORT_DRUM:
+			self->p_drum = (float*)data;
 			break;
 		case PORT_CHN:
 			self->p_chn = (float*)data;
@@ -449,8 +489,8 @@ run (LV2_Handle instance, uint32_t n_samples)
 	}
 
 	if (*self->p_panic > 0) {
-		self->step = 0;
-		self->stme = 0;
+		self->step = N_STEPS - 1;
+		self->stme = N_STEPS * self->sps;
 	}
 
 	float bpm;
@@ -460,7 +500,7 @@ run (LV2_Handle instance, uint32_t n_samples)
 			/* keep track of host position.. */
 			self->bar_beats += n_samples * self->host_bpm * self->host_speed / (60.f * self->sample_rate);
 			/* report only, don't modify state  (stme & step need to remain in sync) */
-			*self->p_step = ((int)floor (self->bar_beats / self->div) % N_STEPS);
+			*self->p_step = 1 + ((int)floor (self->bar_beats / self->div) % N_STEPS);
 
 			if (self->rolling) {
 				self->rolling = false;
@@ -487,53 +527,74 @@ run (LV2_Handle instance, uint32_t n_samples)
 
 	const float sps = self->sps;
 	const float loop_duration = N_STEPS * sps;
-	uint32_t step = self->step;
 	float stme = self->stme;
+
+	self->drum_mode = *self->p_drum > 0;
+	self->swing = *self->p_swing;
+	if (self->swing < 0) {
+		self->swing = 0;
+	}
+	if (self->swing > 0.5) {
+		self->swing = 0.5;
+	}
 
 	if (self->host_info && *self->p_sync > 0) {
 		float hp = self->bar_beats / self->div;
 
 		stme = fmodf (hp, N_STEPS) * sps;
-		/* handle seek - jumps in step. */
-		const float ns = step * sps;
-		if (ns < stme ||  ns - stme > sps) {
+
+		/* handle seek - jumps to step if needed */
+		const float ns = calc_next_step (self);
+		if (ns < stme || ns - stme > 1.5 /* max swing*/ * sps || !self->rolling) {
+
 			if (floor (hp) == hp) {
-				step = ((int)floor (hp) % N_STEPS);
+				assert (stme == 0);
+				/* immediate transition to step 0 */
+				self->step = N_STEPS - 1;
+				self->stme = stme = N_STEPS * self->sps;
+
 			} else {
-				step = 1 + ((int)floor (hp) % N_STEPS);
+				self->step = ((int)floor (hp) % N_STEPS);
 			}
+
 			midi_panic (self);
 			reset_note_tracker (self);
 		}
 	}
 
-	float next_step = step * sps;
-
+	float next_step = calc_next_step (self);
 	uint32_t remain = n_samples;
 
+	if (*self->p_panic > 0) {
+		/* skip processing */
+		remain = 0;
+	}
+
 	while (stme + remain > next_step) {
-		assert (stme <= next_step);
-		uint32_t pos = next_step - stme;
+		uint32_t pos;
 		if (stme > next_step) {
+			/* When decreasing swing, it may be too late for an event.
+			 *
+			 * In the previous cycle with a larger swing-offset, the event was
+			 * still in the future. Now with smaller swing-offset it's in the past.
+			 */
 			lv2_log_error (&self->logger, "StepSeq.lv2: Past event sneaked through.\n");
 			pos = 0;
+		} else {
+			pos = next_step - stme;
 		}
 
 		remain -= pos;
 		stme += pos;
 
-			if (step == 0) {
-				beat_machine (self, pos, 0);
-				self->step = step = 1;
-			} else if (step >= N_STEPS || step == 0) {
-				beat_machine (self, pos, 0);
+		self->step = (self->step + 1) % N_STEPS;
+
+			if (self->step == 0) {
 				stme -= loop_duration;
-				self->step = step = 1;
-			} else {
-				beat_machine (self, pos, step);
-				self->step = ++step ;
 			}
-			next_step = step * sps;
+			beat_machine (self, pos, self->step);
+
+			next_step = calc_next_step (self);
 	}
 
 	self->stme = stme + remain;
@@ -551,8 +612,8 @@ activate (LV2_Handle instance)
 {
 	StepSeq* self = (StepSeq*)instance;
 	self->chn = 255; // queue reset/panic
-	self->step = 0;
-	self->stme = 0;
+	self->step = N_STEPS - 1;
+	self->stme = N_STEPS * self->sps;
 }
 
 static void
