@@ -326,7 +326,7 @@ beat_machine (StepSeq* self, uint32_t ts, uint32_t step)
 }
 
 float calc_next_step (StepSeq* self) {
-	const bool eighth = self->div == 0.5;
+	const bool eighth = true; // self->div == 0.5;
 	const uint32_t step = self->step;
 	if (eighth && (step & 1) == 0) {
 		/* add 0.2 -> "3:2 light swing  -- long eighth + short eighth"
