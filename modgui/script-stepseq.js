@@ -58,7 +58,7 @@ function (event, funcs) {
 	/* catch changes of generic UI or controllers */
 	if (event.type == 'change') {
 		if (event.symbol == "drummode") {
-			update_drummode (event.value)
+			update_drummode_display (event.value)
 		}
 	}
 
