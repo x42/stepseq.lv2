@@ -2,7 +2,7 @@ function (event, funcs) {
 	/* catch changes of generic UI or controllers */
 	if (event.type == 'change') {
 		if (event.symbol == "drummode") {
-			update_drummode_display (event.value)
+			update_drummode_display (event.value, false)
 		}
 	}
 
@@ -31,12 +31,14 @@ function (event, funcs) {
 		}
 	}
 
-	function update_drummode_display (dm) {
+	function update_drummode_display (dm, force) {
 		var dmw = event.icon.find("[x42-role=seq-radio-drum]");
 		if (!(dm || dmw.hasClass("selected")) || (dm && dmw.hasClass("selected"))) {
-			return;
+			if (!force) {
+				return;
+			}
 		}
-		/* event.icon.find ("div.displayradio").removeClass ("selected");*/
+		event.icon.find ("div.displayradio").removeClass ("selected");
 		if (dm) {
 			event.icon.find("[x42-role=seq-radio-drum]").addClass ("selected");
 			update_note_display ('drum');
@@ -106,7 +108,7 @@ function (event, funcs) {
 	var ports = event.ports;
 	for (var p in ports) {
 		if (ports[p].symbol == "drummode") {
-			update_drummode_display (ports[p].value);
+			update_drummode_display (ports[p].value, true);
 			break;
 		}
 	}
