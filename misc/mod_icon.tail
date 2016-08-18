@@ -7,19 +7,25 @@
       <div class="displayradio" x42-role="seq-radio-drum">D</div>
     </div>
 
+    <div class="hidden-ctrl" mod-role="input-control-port" mod-port-symbol="drummode" mod-widget="switch"></div>
+
     <div class="mod-control-group clearfix bottom-group">
         <div class="mod-knob">
             <span class="mod-knob-title">Step</span>
             <div class="mod-knob-step-image" mod-role="input-control-port" mod-port-symbol="div"></div>
         </div>
-        <div class="mod-knob m16 wide">
+        <div class="mod-knob m16 wider">
             <span class="mod-knob-title">Midi Chan.</span>
             <div class="mod-knob-m16-image" mod-role="input-control-port" mod-port-symbol="chn"></div>
         </div>
-        <div class="mod-knob wide">
+        <div class="mod-knob wider">
             <div class="mod-knob-image" mod-role="input-control-port" mod-port-symbol="bpm"></div>
             <span class="mod-knob-right-title">BPM</span>
             <div class="mod-knob-value" contenteditable="true" mod-role="input-control-value" mod-port-symbol="bpm"></div>
+        </div>
+        <div class="mod-knob wide">
+            <span class="mod-knob-title">Swing</span>
+            <div class="mod-knob-swing-image" mod-role="input-control-port" mod-port-symbol="swing"></div>
         </div>
         <div class="mod-knob">
             <div class="mod-pushbutton off" mod-widget="switch" mod-role="input-control-port" mod-port-symbol="panic"></div>

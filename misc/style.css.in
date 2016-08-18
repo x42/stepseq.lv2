@@ -94,6 +94,12 @@
     background-position: top center !important;
 }
 
+.x42-stepseq{{{cns}}} .hidden-ctrl {
+	display:none;
+	height:0px;
+	width:0px;
+}
+
 /* = Display Radio
 ================================================ */
 .x42-stepseq{{{cns}}} .displaybuttons {
@@ -142,7 +148,7 @@
 
 .x42-stepseq{{{cns}}} .bottom-group {
     margin:10px auto 0 auto;
-    width:232px;
+    width:280px;
     position:absolute;
     bottom:36px;
     left:64px;
@@ -162,6 +168,10 @@
 }
 
 .x42-stepseq{{{cns}}} .mod-control-group .mod-knob.wide {
+    width:44px;
+}
+
+.x42-stepseq{{{cns}}} .mod-control-group .mod-knob.wider {
     width:72px;
 }
 
@@ -232,6 +242,17 @@
 
 .x42-stepseq{{{cns}}} .mod-control-group .mod-knob-step-image {
     background-image:url(/resources/division.png{{{ns}}});
+    background-repeat:no-repeat;
+    background-size:auto 42px;
+    background-color:#222;
+    box-shadow: 2px 2px 2px 0px #000 inset, -1px -1px 2px 1px #fff inset;
+    height:42px;
+    width:30px;
+    margin:6px auto 0 auto;
+}
+
+.x42-stepseq{{{cns}}} .mod-control-group .mod-knob-swing-image {
+    background-image:url(/resources/swinger.png{{{ns}}});
     background-repeat:no-repeat;
     background-size:auto 42px;
     background-color:#222;

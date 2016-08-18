@@ -1,41 +1,91 @@
 function (event, funcs) {
-	if (event.type != "start") {
-		return;
+
+	function update_note_display (nd) {
+		switch (nd) {
+			case 'drum':
+				event.icon.find ("[x42-role=seq-note]").removeClass ("note");
+				event.icon.find ("[x42-role=seq-note]").removeClass ("nums");
+				event.icon.find ("[x42-role=seq-note]").addClass ("drum");
+				break;
+			case 'note':
+				event.icon.find ("[x42-role=seq-note]").removeClass ("drum");
+				event.icon.find ("[x42-role=seq-note]").removeClass ("nums");
+				event.icon.find ("[x42-role=seq-note]").addClass ("note");
+				break;
+			case 'nums':
+				event.icon.find ("[x42-role=seq-note]").removeClass ("drum");
+				event.icon.find ("[x42-role=seq-note]").removeClass ("note");
+				event.icon.find ("[x42-role=seq-note]").addClass ("nums");
+				break;
+		}
 	}
 
-	function resetGridValue() {
+	function update_drummode_display (dm) {
+		var dmw = event.icon.find("[x42-role=seq-radio-drum]");
+		if (!(dm || dmw.hasClass("selected")) || (dm && dmw.hasClass("selected"))) {
+			return;
+		}
+		/* event.icon.find ("div.displayradio").removeClass ("selected");*/
+		if (dm) {
+			event.icon.find("[x42-role=seq-radio-drum]").addClass ("selected");
+			update_note_display ('drum');
+		} else {
+			event.icon.find("[x42-role=seq-radio-note]").addClass ("selected");
+			update_note_display ('note');
+		}
+	}
+
+	function set_ctrl (ctrl, value) {
 		if (event.api_version >= 1) {
-			funcs.set_port_value($(this).attr('mod-port-symbol'), 0);
+			funcs.set_port_value($(ctrl).attr('mod-port-symbol'), value);
 		} else {
 			/* this is for MOD v1.0 backwards compatibility and prototyping.
 			 * DO NOT USE THIS APPROACH IN NEW CODE. It bypasses
 			 * checks for bound controls among other things. */
-			$(this).controlWidget('setValue', 0);
+			$(ctrl).controlWidget('setValue', value);
 		}
 	}
 
+	function set_drummode (dm) {
+		var ctrl = event.icon.find ("[mod-port-symbol=drummode]");
+		set_ctrl (ctrl, dm);
+	}
+
+	function resetGridValue() {
+		set_ctrl (this, 0);
+	}
+
+	/* catch changes of generic UI or controllers */
+	if (event.type == 'change') {
+		if (event.symbol == "drummode") {
+			update_drummode (event.value)
+		}
+	}
+
+	if (event.type != "start") {
+		return;
+	}
+
+	/* initial setup */
 	event.icon.find("[x42-role=seq-radio-nums]").click(function(){
 		event.icon.find ("div.displayradio").removeClass ("selected");
 		$(this).addClass ("selected");
-		event.icon.find ("[x42-role=seq-note]").removeClass ("drum");
-		event.icon.find ("[x42-role=seq-note]").removeClass ("note");
-		event.icon.find ("[x42-role=seq-note]").addClass ("nums");
+		update_note_display ('nums');
+		set_drummode (0);
 	});
 
 	event.icon.find("[x42-role=seq-radio-note]").click(function(){
 		event.icon.find ("div.displayradio").removeClass ("selected");
 		$(this).addClass ("selected");
-		event.icon.find ("[x42-role=seq-note]").removeClass ("drum");
-		event.icon.find ("[x42-role=seq-note]").removeClass ("nums");
-		event.icon.find ("[x42-role=seq-note]").addClass ("note");
+		update_note_display ('note');
+		set_drummode (0);
 	});
 
 	event.icon.find("[x42-role=seq-radio-drum]").click(function(){
 		event.icon.find ("div.displayradio").removeClass ("selected");
 		$(this).addClass ("selected");
-		event.icon.find ("[x42-role=seq-note]").removeClass ("note");
-		event.icon.find ("[x42-role=seq-note]").removeClass ("nums");
-		event.icon.find ("[x42-role=seq-note]").addClass ("drum");
+		update_note_display ('drum');
+		set_drummode (1);
 	});
 
 	event.icon.find("div.resetbutton.col").click(function(){
@@ -51,4 +101,11 @@ function (event, funcs) {
 	event.icon.find("div.resetbutton.all").click(function(){
 		event.icon.find("[mod-role=input-control-port][grid-row]").each(resetGridValue);
 	});
+
+	var ports = event.ports;
+	for (var p in ports) {
+		if (ports[p].symbol == "drummode") {
+			update_drummode_display (ports[p].value);
+		}
+	}
 }
