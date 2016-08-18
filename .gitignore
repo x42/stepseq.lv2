@@ -5,6 +5,7 @@
 /misc/*.xcf
 /misc/16seg
 /misc/bpmwheel
+/misc/swinger
 
 /x42/x42-stepseq
 *.dSYM
