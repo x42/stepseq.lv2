@@ -1,5 +1,16 @@
 function (event, funcs) {
+	/* catch changes of generic UI or controllers */
+	if (event.type == 'change') {
+		if (event.symbol == "drummode") {
+			update_drummode_display (event.value)
+		}
+	}
 
+	if (event.type != "start") {
+		return;
+	}
+
+	/* define functions at start */
 	function update_note_display (nd) {
 		switch (nd) {
 			case 'drum':
@@ -55,16 +66,6 @@ function (event, funcs) {
 		set_ctrl (this, 0);
 	}
 
-	/* catch changes of generic UI or controllers */
-	if (event.type == 'change') {
-		if (event.symbol == "drummode") {
-			update_drummode_display (event.value)
-		}
-	}
-
-	if (event.type != "start") {
-		return;
-	}
 
 	/* initial setup */
 	event.icon.find("[x42-role=seq-radio-nums]").click(function(){
@@ -106,6 +107,7 @@ function (event, funcs) {
 	for (var p in ports) {
 		if (ports[p].symbol == "drummode") {
 			update_drummode_display (ports[p].value);
+			break;
 		}
 	}
 }
