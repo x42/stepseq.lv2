@@ -87,6 +87,19 @@ ifeq ($(EXTERNALUI), yes)
   UI_TYPE=
 endif
 
+ifneq ($(MOD),)
+  targets+=$(BUILDDIR)modgui
+  MODLABEL=mod:label \"Step Seq. $(N_STEPS)x$(N_NOTES)\";
+  MODBRAND=mod:brand \"x42\";
+  MODGUILABEL=modgui:label \"Step Seq. $(N_STEPS)x$(N_NOTES)\";
+  MODGUIBRAND=modgui:brand \"x42\";
+  BUILDOPENGL=no
+  BUILDJACKAPP=no
+else
+  MODLABEL=
+  MODBRAND=
+endif
+
 ifeq ($(UI_TYPE),)
   UI_TYPE=kx:Widget
   LV2UIREQ+=lv2:requiredFeature kx:Widget;
@@ -99,17 +112,6 @@ UITTL=
 ifneq ($(BUILDOPENGL), no)
   targets+=$(BUILDDIR)$(LV2GUI)$(LIB_EXT)
   UITTL=ui:ui $(LV2NAME):ui_gl ;
-endif
-
-ifneq ($(MOD),)
-  targets+=$(BUILDDIR)modgui
-  MODLABEL=mod:label \"Step Seq. $(N_STEPS)x$(N_NOTES)\";
-  MODBRAND=mod:brand \"x42\";
-  MODGUILABEL=modgui:label \"Step Seq. $(N_STEPS)x$(N_NOTES)\";
-  MODGUIBRAND=modgui:brand \"x42\";
-else
-  MODLABEL=
-  MODBRAND=
 endif
 
 ###############################################################################
