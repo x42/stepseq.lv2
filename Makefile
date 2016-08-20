@@ -20,8 +20,7 @@ N_STEPS ?= 8
 STRIPFLAGS?=-s
 
 BUILDOPENGL?=yes
-# jack_app needs lv2ttl2c for N_NOTES, N_STEPS
-BUILDJACKAPP?=no
+BUILDJACKAPP?=yes
 
 stepseq_VERSION?=$(shell git describe --tags HEAD 2>/dev/null | sed 's/-g.*$$//;s/^v//' || echo "LV2")
 RW ?= robtk/
@@ -32,7 +31,6 @@ BUILDDIR = build/
 APPBLD   = x42/
 
 ###############################################################################
-
 LOADLIBES=-lm
 LV2NAME=stepseq
 LV2GUI=stepseqUI_gl
@@ -118,6 +116,12 @@ endif
 # extract versions
 LV2VERSION=$(stepseq_VERSION)
 include git2lv2.mk
+
+# jack_app needs lv2ttl2c for N_NOTES, N_STEPS
+ifneq ($(N_NOTES)-$(N_STEPS),8-8)
+  $(warning *** jack application only support 8x8 grid)
+  BUILDJACKAPP = no
+endif
 
 # check for build-dependencies
 ifeq ($(shell pkg-config --exists lv2 || echo no), no)
