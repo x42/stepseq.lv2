@@ -24,6 +24,8 @@
 #include <assert.h>
 
 #include "src/stepseq.h"
+#include "gui/velocity_button.h"
+#include "gui/custom_knob.h"
 
 #define RTK_URI SEQ_URI
 #define RTK_GUI "ui"
@@ -45,16 +47,21 @@ typedef struct {
 	RobWidget*   rw; // top-level container
 	RobWidget*   ctbl; // control element table
 
-	RobTkCBtn*   btn_grid[N_NOTES * N_STEPS];
+	RobTkVBtn*   btn_grid[N_NOTES * N_STEPS];
 	RobTkSelect* sel_note[N_NOTES];
 	RobTkPBtn*   btn_clear[N_NOTES + N_STEPS + 1];
 	RobTkCBtn*   btn_sync;
+	RobTkCBtn*   btn_drum;
 	RobTkSelect* sel_div;
-	RobTkDial*   spn_bpm;
 	RobTkSelect* sel_mchn;
+	RobTkCnob*   spn_bpm;
+	RobTkCnob*   spn_swing;
 	RobTkPBtn*   btn_panic;
+	RobTkLbl*    dpy_step;
 	RobTkLbl*    lbl_step;
+	RobTkLbl*    lbl_chn;
 
+	cairo_pattern_t* swg_bg;
 	cairo_surface_t* bpm_bg;
 
 	bool disable_signals;
@@ -65,59 +72,28 @@ typedef struct {
 
 static const float c_dlf[4] = {0.8, 0.8, 0.8, 1.0}; // dial faceplate fg
 
+#include "gui/bpmwheel.h"
+
 /*** knob faceplates ***/
-static void prepare_faceplates (SeqUI* ui) {
-	cairo_t* cr;
-	float xlp, ylp;
-
-#define INIT_DIAL_SF(VAR, W, H) \
-	VAR = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 2 * (W), 2 * (H)); \
-	cr = cairo_create (VAR); \
-	cairo_scale (cr, 2.0, 2.0); \
-	CairoSetSouerceRGBA(c_trs); \
-	cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE); \
-	cairo_rectangle (cr, 0, 0, W, H); \
-	cairo_fill (cr); \
-	cairo_set_operator (cr, CAIRO_OPERATOR_OVER); \
-
-#define DIALDOTS(V, XADD, YADD) \
-	float ang = (-.75 * M_PI) + (1.5 * M_PI) * (V); \
-	xlp = GED_CX + XADD + sinf (ang) * (GED_RADIUS + 3.0); \
-	ylp = GED_CY + YADD - cosf (ang) * (GED_RADIUS + 3.0); \
-	cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND); \
-	CairoSetSouerceRGBA(c_dlf); \
-	cairo_set_line_width(cr, 2.5); \
-	cairo_move_to(cr, rint(xlp)-.5, rint(ylp)-.5); \
-	cairo_close_path(cr); \
-	cairo_stroke(cr);
-
-#define RESPLABLEL(V) \
-	{ \
-	DIALDOTS(V, 4.5, 15.5) \
-	xlp = rint (GED_CX + 4.5 + sinf (ang) * (GED_RADIUS + 9.5)); \
-	ylp = rint (GED_CY + 15.5 - cosf (ang) * (GED_RADIUS + 9.5)); \
-	}
-
-	INIT_DIAL_SF(ui->bpm_bg, GED_WIDTH + 8, GED_HEIGHT + 20);
-
-	RESPLABLEL(0.00);
-	write_text_full(cr,  "40", ui->font[0], xlp+6, ylp, 0, 1, c_dlf);
-	RESPLABLEL(.16);
-	//write_text_full(cr,  "68", ui->font[0], xlp,   ylp, 0, 1, c_dlf);
-	RESPLABLEL(.33);
-	//write_text_full(cr,  "96", ui->font[0], xlp,   ylp, 0, 1, c_dlf);
-	RESPLABLEL(0.5);
-	write_text_full(cr, "124", ui->font[0], xlp,   ylp, 0, 2, c_dlf);
-	RESPLABLEL(.66);
-	//write_text_full(cr, "152", ui->font[0], xlp,   ylp, 0, 3, c_dlf);
-	RESPLABLEL(.83);
-	//write_text_full(cr, "180", ui->font[0], xlp,   ylp, 0, 3, c_dlf);
-	RESPLABLEL(1.0);
-	write_text_full(cr, "208", ui->font[0], xlp-6, ylp, 0, 3, c_dlf);
+static void prepare_faceplates (SeqUI* ui)
+{
+	float w = ui->spn_bpm->w_width * 2.f;
+	float h = ui->spn_bpm->w_height * 2.f;
+	ui->bpm_bg = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, w, h);
+	cairo_t* cr = cairo_create (ui->bpm_bg);
+	draw_wheel (cr, w, h);
 	cairo_destroy (cr);
+
+	h = ui->spn_swing->w_height;
+	ui->swg_bg = cairo_pattern_create_linear (0.0, 0.0, 3.0, h);
+	cairo_pattern_add_color_stop_rgba (ui->swg_bg, 0.00, 1.0, 0.6, 0.2, 1.0);
+	cairo_pattern_add_color_stop_rgba (ui->swg_bg, 0.33, 1.0, 0.6, 0.2, 1.0);
+	cairo_pattern_add_color_stop_rgba (ui->swg_bg, 1.00, 0.5, 0.3, 0.1, 1.0);
+
 }
 
-static void display_annotation (SeqUI* ui, RobTkDial* d, cairo_t* cr, const char* txt) {
+#if 0
+static void display_annotation (SeqUI* ui, RobTkCnob* d, cairo_t* cr, const char* txt) {
 	int tw, th;
 	cairo_save (cr);
 	PangoLayout* pl = pango_cairo_create_layout (cr);
@@ -136,11 +112,121 @@ static void display_annotation (SeqUI* ui, RobTkDial* d, cairo_t* cr, const char
 	cairo_new_path (cr);
 }
 
-static void dial_annotation_bpm (RobTkDial* d, cairo_t* cr, void* data) {
+static void cnob_annotation_bpm (RobTkCnob* d, cairo_t* cr, void* data) {
 	SeqUI* ui = (SeqUI*)data;
 	char txt[16];
 	snprintf (txt, 16, "%5.1f BPM", d->cur);
 	display_annotation (ui, d, cr, txt);
+}
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
+
+static void draw_swing_text (SeqUI* ui, cairo_t* cr, const char* txt) {
+	int tw, th;
+	PangoLayout* pl = pango_cairo_create_layout (cr);
+	pango_layout_set_font_description (pl, ui->font[0]);
+	cairo_save (cr);
+	cairo_set_source_rgba (cr, 0.0, 0.0, 0.0, 1.0);
+	pango_layout_set_text (pl, txt, -1);
+	pango_layout_get_pixel_size (pl, &tw, &th);
+	cairo_translate (cr, -tw / 2.0, -th / 2.0);
+	pango_cairo_layout_path (cr, pl);
+	cairo_fill (cr);
+	cairo_restore (cr);
+	g_object_unref (pl);
+}
+
+
+static void cnob_expose_swing (RobTkCnob* d, cairo_t* cr, void* data) {
+	SeqUI* ui = (SeqUI*)data;
+
+	float w = d->w_width;
+	float h = d->w_height;
+
+	const float v_min = d->min;
+	const float v_max = d->max;
+	const float v_cur = d->cur;
+
+	rounded_rectangle (cr, 1.5, 1.5, w - 3, h - 3, 5);
+	cairo_set_line_width (cr, 1.0);
+	cairo_set_source_rgba (cr, .0, .0, .0, 1.0);
+	cairo_stroke_preserve (cr);
+	cairo_clip (cr);
+
+	float vh = h * (v_cur - v_min) / (v_max - v_min);
+	cairo_rectangle (cr, 0, h - vh, w, vh);
+	cairo_set_source (cr, ui->swg_bg);
+	cairo_fill (cr);
+
+	cairo_save (cr);
+	cairo_translate (cr, w * .5, h * .5);
+
+	if (rint(30 * v_cur) == 0.0) {
+		draw_swing_text (ui, cr, "1:1");
+	}
+	else if (rint(30 * v_cur) == 6.0) {
+		draw_swing_text (ui, cr, "3:2");
+	}
+	else if (rint(30 * v_cur) == 10.0) {
+		draw_swing_text (ui, cr, "2:1");
+	}
+	else if (rint(30 * v_cur) == 15.0) {
+		draw_swing_text (ui, cr, "3:1");
+	}
+
+	cairo_restore (cr);
+
+	rounded_rectangle (cr, 1.5, 1.5, w - 3, h - 3, 5);
+	cairo_set_line_width (cr, 1.0);
+	cairo_set_source_rgba (cr, .0, .0, .0, 1.0);
+	cairo_stroke (cr);
+
+}
+
+static void cnob_expose_bpm (RobTkCnob* d, cairo_t* cr, void* data) {
+	SeqUI* ui = (SeqUI*)data;
+
+	PangoLayout* pl = pango_cairo_create_layout (cr);
+	pango_layout_set_font_description (pl, ui->font[1]);
+
+	float w = d->w_width;
+	float h = d->w_height;
+
+	cairo_save (cr);
+	cairo_scale (cr, 0.5, 0.5);
+	cairo_set_source_surface(cr, ui->bpm_bg, 0, 0);
+	cairo_paint (cr);
+
+	cairo_restore (cr);
+
+	cairo_translate (cr, 0, 1);
+	wheel_path (cr, w, h - 2);
+	cairo_clip (cr);
+	cairo_save (cr);
+	cairo_translate (cr, w * .5f, h * .5f);
+
+	const float v_min = d->min;
+	const float v_max = d->max;
+	const float v_cur = d->cur;
+
+	for (int s = 0; s < 5; ++s) {
+			char txt[7];
+			float v = v_cur + s - 2;
+			if (floor(v) < v_min || floor(v) > v_max) {
+				continue;
+			}
+			sprintf (txt, "%.0f", floor(v));
+			float off =  s / (4.f);
+			off -= fmodf (v_cur, 1.0) / 4.f;
+			if (off <  .05 || off >  .95) {
+				continue;
+			}
+			draw_bpm_value (cr, pl, txt, d->w_height, off);
+	}
+	cairo_restore (cr);
+	g_object_unref (pl);
+	// keep clip (for overlay)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -166,8 +252,16 @@ static bool cb_div (RobWidget* w, void* handle) {
 static bool cb_bpm (RobWidget* w, void* handle) {
 	SeqUI* ui = (SeqUI*)handle;
 	if (ui->disable_signals) return TRUE;
-	const float val = robtk_dial_get_value (ui->spn_bpm);
+	const float val = robtk_cnob_get_value (ui->spn_bpm);
 	ui->write (ui->controller, PORT_BPM, sizeof (float), 0, (const void*) &val);
+	return TRUE;
+}
+
+static bool cb_swing (RobWidget* w, void* handle) {
+	SeqUI* ui = (SeqUI*)handle;
+	if (ui->disable_signals) return TRUE;
+	const float val = robtk_cnob_get_value (ui->spn_swing);
+	ui->write (ui->controller, PORT_SWING, sizeof (float), 0, (const void*) &val);
 	return TRUE;
 }
 
@@ -184,8 +278,16 @@ static bool cb_note (RobWidget* w, void* handle) {
 static bool cb_sync (RobWidget* w, void* handle) {
 	SeqUI* ui = (SeqUI*)handle;
 	if (ui->disable_signals) return TRUE;
-	const float val = robtk_cbtn_get_active (ui->btn_sync) ? 0 : 1;
+	const float val = robtk_cbtn_get_active (ui->btn_sync) ? 1 : 0;
 	ui->write (ui->controller, PORT_SYNC, sizeof (float), 0, (const void*) &val);
+	return TRUE;
+}
+
+static bool cb_drum (RobWidget* w, void* handle) {
+	SeqUI* ui = (SeqUI*)handle;
+	if (ui->disable_signals) return TRUE;
+	const float val = robtk_cbtn_get_active (ui->btn_drum) ? 1 : 0;
+	ui->write (ui->controller, PORT_DRUM, sizeof (float), 0, (const void*) &val);
 	return TRUE;
 }
 
@@ -194,7 +296,7 @@ static bool cb_grid (RobWidget* w, void* handle) {
 	int g;
 	memcpy (&g, w->name, sizeof(int)); // hack alert
 	if (ui->disable_signals) return TRUE;
-	const float val = robtk_cbtn_get_active (ui->btn_grid[g]) ? 127 : 0;
+	const float val = robtk_vbtn_get_value (ui->btn_grid[g]);
 	ui->write (ui->controller, PORT_NOTES + N_NOTES + g, sizeof (float), 0, (const void*) &val);
 	return TRUE;
 }
@@ -213,6 +315,30 @@ static bool cb_btn_panic_off (RobWidget *w, void* handle) {
 	return TRUE;
 }
 
+static bool cb_btn_reset (RobWidget *w, void* handle) {
+	SeqUI* ui = (SeqUI*)handle;
+	if (ui->disable_signals) return TRUE;
+	int g;
+	memcpy (&g, w->name, sizeof(int)); // hack alert
+	if (g < N_NOTES) {
+		// row 'g'
+		for (uint32_t p = 0; p < N_STEPS; ++p) {
+			uint32_t po = N_NOTES * g + p;
+			robtk_vbtn_set_value (ui->btn_grid[po], 0);
+		}
+	} else if (g < N_NOTES + N_STEPS) {
+		// column 'g'
+		for (uint32_t p = 0; p < N_NOTES; ++p) {
+			uint32_t po = (g - N_NOTES) + N_STEPS * p;
+			robtk_vbtn_set_value (ui->btn_grid[po], 0);
+		}
+	} else {
+		for (uint32_t p = 0; p < N_NOTES * N_STEPS; ++p) {
+			robtk_vbtn_set_value (ui->btn_grid[p], 0);
+		}
+	}
+	return TRUE;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -223,16 +349,12 @@ static RobWidget* toplevel (SeqUI* ui, void* const top) {
 	robwidget_make_toplevel (ui->rw, top);
 	robwidget_toplevel_enable_scaling (ui->rw);
 
-	ui->font[0] = pango_font_description_from_string ("Mono 9px");
-	ui->font[1] = pango_font_description_from_string ("Mono 10px");
-
-	prepare_faceplates (ui);
+	ui->font[0] = pango_font_description_from_string ("Sans 12px");
+	ui->font[1] = pango_font_description_from_string ("Sans 17px");
 
 	ui->ctbl = rob_table_new (/*rows*/N_NOTES + 2, /*cols*/ N_STEPS + 2, FALSE);
 
-#define GSP_W(PTR) robtk_dial_widget (PTR)
 #define GSL_W(PTR) robtk_select_widget (PTR)
-#define GCB_W(PTR) robtk_cbtn_widget (PTR)
 
 	for (uint32_t n = 0; n < N_NOTES; ++n) {
 		ui->sel_note[n] = robtk_select_new ();
@@ -249,20 +371,41 @@ static RobWidget* toplevel (SeqUI* ui, void* const top) {
 
 		for (uint32_t s = 0; s < N_STEPS; ++s) {
 			uint g = n * N_STEPS + s;
-			ui->btn_grid[g] = robtk_cbtn_new ("  ", GBT_LED_OFF, false);
-			rob_table_attach (ui->ctbl, GCB_W (ui->btn_grid[g]), 1 + s, 2 + s, n, n + 1, 2, 2, RTK_SHRINK, RTK_SHRINK);
+			ui->btn_grid[g] = robtk_vbtn_new ();
+			rob_table_attach (ui->ctbl, robtk_vbtn_widget (ui->btn_grid[g]), 1 + s, 2 + s, n, n + 1, 0, 0, RTK_SHRINK, RTK_SHRINK);
 			// hack alert -- should add a .data field to Robwidget
 			memcpy (ui->btn_grid[g]->rw->name, &g, sizeof(int));
-			robtk_cbtn_set_callback (ui->btn_grid[g], cb_grid, ui);
+			robtk_vbtn_set_callback (ui->btn_grid[g], cb_grid, ui);
 		}
+
+		ui->btn_clear[n] = robtk_pbtn_new ("C");
+		robtk_pbtn_set_callback_up (ui->btn_clear[n], cb_btn_reset, ui);
+		robtk_pbtn_set_alignment (ui->btn_clear[n], .5, .5);
+		rob_table_attach (ui->ctbl, robtk_pbtn_widget (ui->btn_clear[n]), N_STEPS + 1, N_STEPS + 2, n, n + 1, 2, 2, RTK_EXANDF, RTK_SHRINK);
+		// hack alert -- should add a .data field to Robwidget
+		memcpy (ui->btn_clear[n]->rw->name, &n, sizeof(int));
 	}
+
+	for (uint32_t s = 0; s <= N_STEPS; ++s) {
+		int n = N_NOTES + s;
+		ui->btn_clear[n] = robtk_pbtn_new ("C");
+		robtk_pbtn_set_callback_up (ui->btn_clear[n], cb_btn_reset, ui);
+		robtk_pbtn_set_alignment (ui->btn_clear[n], .5, .5);
+		rob_table_attach (ui->ctbl, robtk_pbtn_widget (ui->btn_clear[n]), s + 1, s + 2, N_NOTES, N_NOTES + 1, 2, 2, RTK_SHRINK, RTK_SHRINK);
+		// hack alert -- should add a .data field to Robwidget
+		memcpy (ui->btn_clear[n]->rw->name, &n, sizeof(int));
+	}
+
 
 	int cr = 2 + N_NOTES;
 
 	/* sync */
 	ui->btn_sync = robtk_cbtn_new ("Sync", GBT_LED_LEFT, false);
 	robtk_cbtn_set_callback (ui->btn_sync, cb_sync, ui);
-	rob_table_attach (ui->ctbl, GCB_W (ui->btn_sync), 0, 1, cr, cr + 1, 2, 2, RTK_SHRINK, RTK_SHRINK);
+
+	/* sync */
+	ui->btn_drum = robtk_cbtn_new ("Drum Mode", GBT_LED_LEFT, false);
+	robtk_cbtn_set_callback (ui->btn_drum, cb_drum, ui);
 
 	/* beat divicer */
 	ui->sel_div = robtk_select_new ();
@@ -278,20 +421,24 @@ static RobWidget* toplevel (SeqUI* ui, void* const top) {
 	robtk_select_add_item (ui->sel_div, 9, "4 Bars");
 	robtk_select_set_default_item (ui->sel_div, 3);
 	robtk_select_set_callback (ui->sel_div, cb_div, ui);
-	rob_table_attach (ui->ctbl, GSL_W (ui->sel_div), 0, 3, cr + 1, cr + 2, 2, 0, RTK_EXANDF, RTK_SHRINK);
 
 	/* bpm */
-	ui->spn_bpm = robtk_dial_new_with_size (40, 208, 1.f / (208.f - 40.f),
-			GED_WIDTH + 8, GED_HEIGHT + 20, GED_CX + 4, GED_CY + 15, GED_RADIUS);
-	ui->spn_bpm->with_scroll_accel = false;
+	ui->spn_bpm = robtk_cnob_new (40, 208, 0.2, 64, 44);
+	robtk_cnob_set_callback (ui->spn_bpm, cb_bpm, ui);
+	robtk_cnob_set_value (ui->spn_bpm, 120.f);
+	robtk_cnob_set_default (ui->spn_bpm, 120.f);
+	robtk_cnob_expose_callback (ui->spn_bpm, cnob_expose_bpm, ui);
+	robtk_cnob_set_scroll_mult (ui->spn_bpm, 5.0);
 
-	robtk_dial_set_callback (ui->spn_bpm, cb_bpm, ui);
-	robtk_dial_set_value (ui->spn_bpm, 120.f);
-	robtk_dial_set_default (ui->spn_bpm, 120.f);
-	robtk_dial_set_scroll_mult (ui->spn_bpm, 5);
-	robtk_dial_annotation_callback (ui->spn_bpm, dial_annotation_bpm, ui);
-	rob_table_attach (ui->ctbl, GSP_W (ui->spn_bpm), 3, 6, cr + 1, cr + 2, 2, 2, RTK_SHRINK, RTK_SHRINK);
-	robtk_dial_set_scaled_surface_scale (ui->spn_bpm, ui->bpm_bg, 2.0);
+	/* schwing */
+	ui->spn_swing = robtk_cnob_new (0, 0.5, 1.f / 30.f, 30, 42);
+	robtk_cnob_set_callback (ui->spn_swing, cb_swing, ui);
+	robtk_cnob_set_value (ui->spn_swing, 0.f);
+	robtk_cnob_set_default (ui->spn_swing, 0.f);
+	robtk_cnob_expose_callback (ui->spn_swing, cnob_expose_swing, ui);
+	robtk_cnob_set_scroll_mult (ui->spn_swing, 1.0);
+	//float swing_detents[4] =  {0, 0.2, 1.0 / 3.0, 0.5};
+	//robtk_cnob_set_detents (ui->spn_swing, 4, swing_detents);
 
 	/* midi channel */
 	ui->sel_mchn = robtk_select_new ();
@@ -302,19 +449,36 @@ static RobWidget* toplevel (SeqUI* ui, void* const top) {
 	}
 	robtk_select_set_default_item (ui->sel_mchn, 0);
 	robtk_select_set_callback (ui->sel_mchn, cb_mchn, ui);
-	rob_table_attach (ui->ctbl, GSL_W (ui->sel_mchn), 3, 6, cr, cr + 1, 2, 0, RTK_EXANDF, RTK_SHRINK);
 
 	/* panic */
-	ui->btn_panic = robtk_pbtn_new ("MIDI Panic");
+	ui->btn_panic = robtk_pbtn_new ("Panic");
 	robtk_pbtn_set_callback_up (ui->btn_panic, cb_btn_panic_off, ui);
 	robtk_pbtn_set_callback_down (ui->btn_panic, cb_btn_panic_on, ui);
-	rob_table_attach (ui->ctbl, robtk_pbtn_widget (ui->btn_panic), 6, 9, cr, cr + 1, 2, 0, RTK_EXANDF, RTK_SHRINK);
+	robtk_pbtn_set_alignment (ui->btn_panic, .5, .5);
 
-	ui->lbl_step = robtk_lbl_new ("");
-	rob_table_attach (ui->ctbl, robtk_lbl_widget (ui->lbl_step), 6, 9, cr + 1, cr + 2, 2, 0, RTK_EXANDF, RTK_SHRINK);
+	ui->dpy_step = robtk_lbl_new ("");
+	ui->lbl_step = robtk_lbl_new ("Step:");
+	ui->lbl_chn  = robtk_lbl_new ("Chn:");
+	robtk_lbl_set_alignment (ui->lbl_step, .9, .5);
+
+	rob_table_attach (ui->ctbl, robtk_cbtn_widget (ui->btn_sync),  0, 1, cr + 0, cr + 1, 2, 2, RTK_EXANDF, RTK_SHRINK);
+	rob_table_attach (ui->ctbl, robtk_pbtn_widget (ui->btn_panic), 0, 1, cr + 1, cr + 2, 2, 2, RTK_EXANDF, RTK_SHRINK);
+
+	rob_table_attach (ui->ctbl, robtk_lbl_widget (ui->lbl_chn), 1, 2, cr + 1, cr + 2, 0, 0, RTK_EXANDF, RTK_SHRINK);
+	rob_table_attach (ui->ctbl, GSL_W (ui->sel_div),  1, 4, cr + 0, cr + 1, 0, 0, RTK_EXANDF, RTK_SHRINK);
+	rob_table_attach (ui->ctbl, GSL_W (ui->sel_mchn), 2, 4, cr + 1, cr + 2, 0, 0, RTK_EXANDF, RTK_SHRINK);
+	rob_table_attach (ui->ctbl, robtk_cnob_widget (ui->spn_bpm), 4, 6, cr + 0, cr + 2, 0, 0, RTK_SHRINK, RTK_SHRINK);
+	rob_table_attach (ui->ctbl, robtk_cnob_widget (ui->spn_swing), 6, 7, cr + 0, cr + 2, 0, 0, RTK_EXANDF, RTK_SHRINK);
+
+	rob_table_attach (ui->ctbl, robtk_cbtn_widget (ui->btn_drum), 7, 10, cr + 0, cr + 1, 2, 2, RTK_EXANDF, RTK_SHRINK);
+	rob_table_attach (ui->ctbl, robtk_lbl_widget (ui->lbl_step), 7, 9, cr + 1, cr + 2, 0, 0, RTK_EXANDF, RTK_SHRINK);
+	rob_table_attach (ui->ctbl, robtk_lbl_widget (ui->dpy_step), 9, 10, cr + 1, cr + 2, 0, 0, RTK_EXANDF, RTK_SHRINK);
 
 	/* top-level packing */
 	rob_hbox_child_pack (ui->rw, ui->ctbl, FALSE, TRUE);
+
+	prepare_faceplates (ui);
+
 	return ui->rw;
 }
 
@@ -326,17 +490,27 @@ static void gui_cleanup (SeqUI* ui) {
 		robtk_select_destroy (ui->sel_note[n]);
 		for (uint32_t s = 0; s < N_STEPS; ++s) {
 			uint g = n * N_STEPS + s;
-			robtk_cbtn_destroy (ui->btn_grid[g]);
+			robtk_vbtn_destroy (ui->btn_grid[g]);
 		}
 	}
 
-	robtk_select_destroy (ui->sel_mchn);
+	for (uint32_t p = 0; p < N_NOTES + N_STEPS + 1; ++p) {
+		robtk_pbtn_destroy (ui->btn_clear[p]);
+	}
+
+	robtk_cbtn_destroy (ui->btn_sync);
+	robtk_cbtn_destroy (ui->btn_drum);
 	robtk_select_destroy (ui->sel_div);
+	robtk_select_destroy (ui->sel_mchn);
+	robtk_cnob_destroy (ui->spn_bpm);
+	robtk_cnob_destroy (ui->spn_swing);
 	robtk_pbtn_destroy (ui->btn_panic);
-	robtk_dial_destroy (ui->spn_bpm);
+	robtk_lbl_destroy (ui->dpy_step);
 	robtk_lbl_destroy (ui->lbl_step);
+	robtk_lbl_destroy (ui->lbl_chn);
 
 	cairo_surface_destroy (ui->bpm_bg);
+	cairo_pattern_destroy (ui->swg_bg);
 
 	rob_table_destroy (ui->ctbl);
 	rob_box_destroy (ui->rw);
@@ -413,7 +587,8 @@ port_event (LV2UI_Handle handle,
 			robtk_cbtn_set_active (ui->btn_sync, v > 0);
 			break;
 		case PORT_BPM:
-			robtk_dial_set_value (ui->spn_bpm, v);
+			// check sens..
+			robtk_cnob_set_value (ui->spn_bpm, v);
 			break;
 		case PORT_DIVIDER:
 			robtk_select_set_item (ui->sel_div, v);
@@ -421,13 +596,27 @@ port_event (LV2UI_Handle handle,
 		case PORT_CHN:
 			robtk_select_set_value (ui->sel_mchn, v);
 			break;
+		case PORT_DRUM:
+			robtk_cbtn_set_active (ui->btn_drum, v > 0);
+			break;
+		case PORT_SWING:
+			robtk_cnob_set_value (ui->spn_swing, v);
+			break;
 		case PORT_PANIC:
+			break;
+		case PORT_HOSTBPM:
+			if (v < 0) {
+				robtk_cnob_set_sensitive (ui->spn_bpm, true);
+			} else {
+				robtk_cnob_set_sensitive (ui->spn_bpm, false);
+				robtk_cnob_set_value (ui->spn_bpm, v);
+			}
 			break;
 		case PORT_STEP:
 			{
 				char txt[16];
 				sprintf (txt, "%.0f", v);
-				robtk_lbl_set_text (ui->lbl_step, txt);
+				robtk_lbl_set_text (ui->dpy_step, txt);
 			}
 			break;
 		default:
@@ -437,7 +626,7 @@ port_event (LV2UI_Handle handle,
 			}
 			else if (port_index < PORT_NOTES + N_NOTES + N_NOTES * N_STEPS) {
 				int g = port_index - PORT_NOTES - N_NOTES;
-				robtk_cbtn_set_active (ui->btn_grid[g], v > 0);
+				robtk_vbtn_set_value (ui->btn_grid[g], v);
 			}
 			break;
 	}
