@@ -63,6 +63,7 @@ typedef struct {
 	float* p_chn;
 	float* p_panic;
 	float* p_step;
+	float* p_hostbpm;
 
 	float* p_note[N_NOTES];
 	float* p_grid[N_NOTES * N_STEPS];
@@ -422,6 +423,9 @@ connect_port (LV2_Handle instance,
 		case PORT_STEP:
 			self->p_step = (float*)data;
 			break;
+		case PORT_HOSTBPM:
+			self->p_hostbpm = (float*)data;
+			break;
 		default:
 			if (port < PORT_NOTES + N_NOTES) {
 				self->p_note[port - PORT_NOTES] = (float*)data;
@@ -496,6 +500,7 @@ run (LV2_Handle instance, uint32_t n_samples)
 	float bpm;
 
 	if (self->host_info && *self->p_sync > 0) {
+		*self->p_hostbpm = self->host_bpm;
 		if (self->host_speed <= 0) {
 			/* keep track of host position.. */
 			self->bar_beats += n_samples * self->host_bpm * self->host_speed / (60.f * self->sample_rate);
@@ -511,6 +516,7 @@ run (LV2_Handle instance, uint32_t n_samples)
 		}
 		bpm = self->host_bpm * self->host_speed;
 	} else {
+		*self->p_hostbpm = -1;
 		bpm = *self->p_bpm;
 	}
 

@@ -4,7 +4,7 @@ STEPS=$2
 
 MODICON=modgui/icon-stepseq.html
 MODSTYLE=modgui/style-stepseq.css
-IDX=10
+IDX=11
 
 function twelvetet {
 	num=$(( $1 % 7 ))

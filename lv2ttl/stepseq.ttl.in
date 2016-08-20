@@ -134,3 +134,11 @@
 		lv2:minimum 1;
 		lv2:maximum @STEPS@;
 		lv2:portProperty lv2:integer;
+	] , [
+		a lv2:OutputPort, lv2:ControlPort ;
+		lv2:index 10;
+		lv2:symbol "hostbpm";
+		lv2:name "Host BPM";
+		lv2:minimum 40;
+		lv2:maximum 208;
+		lv2:portProperty pprop:notOnGUI ;
