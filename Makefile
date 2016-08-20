@@ -245,7 +245,7 @@ override CFLAGS+= -DN_NOTES=$(N_NOTES) -DN_STEPS=$(N_STEPS)
 
 DSP_SRC = src/$(LV2NAME).c
 DSP_DEPS = $(DSP_SRC) src/$(LV2NAME).h
-GUI_DEPS = gui/$(LV2NAME).c gui/velocity_button.h gui/custom_knob.h gui/bpmwheel.h
+GUI_DEPS = gui/$(LV2NAME).c gui/velocity_button.h gui/custom_knob.h gui/bpmwheel.h gui/divisions.h
 
 $(BUILDDIR)$(LV2NAME)$(LIB_EXT): $(DSP_DEPS) Makefile
 	@mkdir -p $(BUILDDIR)

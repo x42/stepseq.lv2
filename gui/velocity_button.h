@@ -24,6 +24,7 @@ typedef struct {
 	RobWidget* rw;
 
 	bool prelight;
+	bool highlight;
 
 	bool (*cb) (RobWidget* w, void* handle);
 	void* handle;
@@ -161,13 +162,17 @@ static bool robtk_vbtn_expose_event(RobWidget* handle, cairo_t* cr, cairo_rectan
 		cairo_stroke(cr);
 	}
 
-	const float xalign = 0; // rint((d->w_width - d->l_width) * d->rw->xalign);
-	const float yalign = 0; // rint((d->w_height - d->l_height) * d->rw->yalign);
+	if (d->highlight) {
+		cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
+			cairo_set_source_rgba (cr, 1.0, 0.0, 0.0, .2);
+		rounded_rectangle(cr, 2.5, 2.5, d->w_width - 4, d->w_height - 4, C_RAD);
+		cairo_fill(cr);
+	}
 
 	cairo_save (cr);
 	cairo_scale (cr, 1.0 / d->rw->widget_scale, 1.0 / d->rw->widget_scale);
 	cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
-	cairo_set_source_surface(cr, d->sf_txt, xalign, yalign);
+	cairo_set_source_surface(cr, d->sf_txt, 0, 0);
 	cairo_paint (cr);
 	cairo_restore (cr);
 
@@ -178,10 +183,10 @@ static bool robtk_vbtn_expose_event(RobWidget* handle, cairo_t* cr, cairo_rectan
 		} else {
 			cairo_set_source_rgba (cr, 1.0, 1.0, 1.0, .1);
 		}
-
 		rounded_rectangle(cr, 2.5, 2.5, d->w_width - 4, d->w_height - 4, C_RAD);
 		cairo_fill(cr);
 	}
+
 	pthread_mutex_unlock (&d->_mutex);
 	return TRUE;
 }
@@ -375,4 +380,13 @@ static float robtk_vbtn_get_value(RobTkVBtn *d) {
 static void robtk_vbtn_set_value(RobTkVBtn *d, float v) {
 	robtk_vbtn_update_value(d, v);
 }
+
+static void robtk_vbtn_set_highlight(RobTkVBtn *d, bool h) {
+	if (d->highlight == h) {
+		return;
+	}
+	d->highlight = h;
+	queue_draw(d->rw);
+}
+
 #endif

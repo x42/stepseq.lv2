@@ -516,7 +516,7 @@ run (LV2_Handle instance, uint32_t n_samples)
 		}
 		bpm = self->host_bpm * self->host_speed;
 	} else {
-		*self->p_hostbpm = -1;
+		*self->p_hostbpm = self->host_info ? -1 : 0;
 		bpm = *self->p_bpm;
 	}
 
