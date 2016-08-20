@@ -419,16 +419,9 @@ static bool cb_grid (RobWidget* w, void* handle) {
 	return TRUE;
 }
 
-static bool cb_btn_panic_on (RobWidget *w, void* handle) {
+static bool cb_btn_panic (RobWidget *w, void* handle) {
 	SeqUI* ui = (SeqUI*)handle;
-	float val = 1.f;
-	ui->write (ui->controller, PORT_PANIC, sizeof (float), 0, (const void*) &val);
-	return TRUE;
-}
-
-static bool cb_btn_panic_off (RobWidget *w, void* handle) {
-	SeqUI* ui = (SeqUI*)handle;
-	float val = 0.0;
+	float val = robtk_pbtn_get_pushed (ui->btn_panic) ? 1.f : 0.f;
 	ui->write (ui->controller, PORT_PANIC, sizeof (float), 0, (const void*) &val);
 	return TRUE;
 }
@@ -569,8 +562,8 @@ static RobWidget* toplevel (SeqUI* ui, void* const top) {
 
 	/* panic */
 	ui->btn_panic = robtk_pbtn_new ("Panic");
-	robtk_pbtn_set_callback_up (ui->btn_panic, cb_btn_panic_off, ui);
-	robtk_pbtn_set_callback_down (ui->btn_panic, cb_btn_panic_on, ui);
+	robtk_pbtn_set_callback (ui->btn_panic, cb_btn_panic, ui);
+	robtk_pbtn_set_alignment(ui->btn_panic, 0.5, 0.5);
 
 	/* labels */
 	ui->lbl_chn  = robtk_lbl_new ("Midi Chn.");
