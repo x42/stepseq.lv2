@@ -1,16 +1,5 @@
 function (event, funcs) {
-	/* catch changes of generic UI or controllers */
-	if (event.type == 'change') {
-		if (event.symbol == "drummode") {
-			update_drummode_display (event.value, false)
-		}
-	}
 
-	if (event.type != "start") {
-		return;
-	}
-
-	/* define functions at start */
 	function update_note_display (nd) {
 		switch (nd) {
 			case 'drum':
@@ -48,6 +37,16 @@ function (event, funcs) {
 		}
 	}
 
+	if (event.type == 'change') {
+		if (event.symbol == "drummode") {
+			update_drummode_display (event.value, false)
+		}
+	}
+
+	if (event.type != "start") {
+		return;
+	}
+
 	function set_ctrl (ctrl, value) {
 		if (event.api_version >= 1) {
 			funcs.set_port_value($(ctrl).attr('mod-port-symbol'), value);
@@ -67,7 +66,6 @@ function (event, funcs) {
 	function resetGridValue() {
 		set_ctrl (this, 0);
 	}
-
 
 	/* initial setup */
 	event.icon.find("[x42-role=seq-radio-nums]").click(function(){
