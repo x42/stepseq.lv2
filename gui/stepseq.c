@@ -484,7 +484,7 @@ static RobWidget* toplevel (SeqUI* ui, void* const top) {
 			rob_table_attach (ui->ctbl, robtk_lbl_widget (ui->lbl_note[n]), 0, 1, 2*n + 1, 2*n + 2, 2, 0, RTK_SHRINK, RTK_EXANDF);
 
 		for (uint32_t s = 0; s < N_STEPS; ++s) {
-			uint g = n * N_STEPS + s;
+			uint32_t g = n * N_STEPS + s;
 			ui->btn_grid[g] = robtk_vbtn_new ();
 			rob_table_attach (ui->ctbl, robtk_vbtn_widget (ui->btn_grid[g]), 1 + s, 2 + s, 2*n, 2*n + 2, 0, 0, RTK_SHRINK, RTK_SHRINK);
 			// hack alert -- should add a .data field to Robwidget
@@ -604,7 +604,7 @@ static void gui_cleanup (SeqUI* ui) {
 		robtk_select_destroy (ui->sel_note[n]);
 		robtk_lbl_destroy (ui->lbl_note[n]);
 		for (uint32_t s = 0; s < N_STEPS; ++s) {
-			uint g = n * N_STEPS + s;
+			uint32_t g = n * N_STEPS + s;
 			robtk_vbtn_destroy (ui->btn_grid[g]);
 		}
 	}
