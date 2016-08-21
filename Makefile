@@ -69,6 +69,7 @@ endif
 
 ifneq ($(XWIN),)
   CC=$(XWIN)-gcc
+  CXX=$(XWIN)-g++
   STRIP=$(XWIN)-strip
   LV2LDFLAGS=-Wl,-Bstatic -Wl,-Bdynamic -Wl,--as-needed
   LIB_EXT=.dll
@@ -170,7 +171,7 @@ GLUICFLAGS+=-DHAVE_IDLE_IFACE
 LV2UIREQ+=lv2:requiredFeature ui:idleInterface; lv2:extensionData ui:idleInterface;
 
 # add library dependent flags and libs
-override CFLAGS += $(OPTIMIZATIONS) -DVERSION="\"$(fat1_VERSION)\""
+override CFLAGS += $(OPTIMIZATIONS) -DVERSION="\"$(stepseq_VERSION)\""
 override CFLAGS += `pkg-config --cflags lv2`
 
 ifeq ($(XWIN),)
