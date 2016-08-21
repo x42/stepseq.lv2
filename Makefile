@@ -34,9 +34,9 @@ APPBLD   = x42/
 LOADLIBES=-lm
 LV2NAME=stepseq
 LV2GUI=stepseqUI_gl
-BUNDLE=stepseq.lv2
 URISUFFIX=s$(N_STEPS)n$(N_NOTES)
 NAMESUFFIX=$(N_STEPS)x$(N_NOTES)
+BUNDLE=stepseq_$(URISUFFIX).lv2
 
 targets=
 
