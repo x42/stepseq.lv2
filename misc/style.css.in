@@ -345,11 +345,11 @@
 }
 
 .x42-stepseq{{{cns}}} .buttongrid .togglebtn.on.highlight {
-    background-color:#c82;
+    background-color:#f60;
 }
 
 .x42-stepseq{{{cns}}} .buttongrid .togglebtn.off.highlight {
-    background-color:#a43;
+    background-color:#666;
 }
 
 .x42-stepseq{{{cns}}} .buttongrid .resetbutton {
