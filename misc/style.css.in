@@ -344,6 +344,14 @@
     box-shadow: 2px 2px 2px 0px #000 inset, -2px -2px 2px 1px #888 inset;
 }
 
+.x42-stepseq{{{cns}}} .buttongrid .togglebtn.on.highlight {
+    background-color:#c82;
+}
+
+.x42-stepseq{{{cns}}} .buttongrid .togglebtn.off.highlight {
+    background-color:#a43;
+}
+
 .x42-stepseq{{{cns}}} .buttongrid .resetbutton {
     border-radius: 5px;
     background-color:#444;

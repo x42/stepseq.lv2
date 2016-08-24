@@ -37,9 +37,15 @@ function (event, funcs) {
 		}
 	}
 
+	function set_current_step (step) {
+		/* TODO: incremental, keep track of highlighted column */
+		event.icon.find("[mod-role=input-control-port][grid-row]").each(function () { $(this).removeClass("highlight"); });
+		event.icon.find("[mod-role=input-control-port][grid-col="+step+"]").each(function () { $(this).addClass("highlight"); });
+	}
+
 	if (event.type == 'change') {
 		if (event.symbol == "drummode") {
-			update_drummode_display (event.value, false)
+			update_drummode_display (event.value, false);
 		}
 	}
 
