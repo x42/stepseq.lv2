@@ -47,7 +47,7 @@ function (event, funcs) {
 		if (event.symbol == "drummode") {
 			update_drummode_display (event.value, false);
 		}
-		if (event.symbol == "pos") {
+		else if (event.symbol == "pos") {
 			set_current_step (Math.round (event.value));
 		}
 	}
