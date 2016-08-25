@@ -47,6 +47,9 @@ function (event, funcs) {
 		if (event.symbol == "drummode") {
 			update_drummode_display (event.value, false);
 		}
+		if (event.symbol == "pos") {
+			set_current_step (Math.round (event.value));
+		}
 	}
 
 	if (event.type != "start") {
@@ -111,9 +114,15 @@ function (event, funcs) {
 
 	var ports = event.ports;
 	for (var p in ports) {
-		if (ports[p].symbol == "drummode") {
-			update_drummode_display (ports[p].value, true);
-			break;
+		switch (ports[p].symbol) {
+			case 'drummode':
+				update_drummode_display (ports[p].value, true);
+				break;
+			case 'pos':
+				set_current_step (Math.round (event.value));
+				break;
+			default:
+				break;
 		}
 	}
 }
