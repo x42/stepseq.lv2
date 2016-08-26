@@ -7,6 +7,7 @@
         modgui:screenshot <modgui/screenshot-@LV2NAME@.png> ;
         modgui:thumbnail <modgui/thumbnail-@LV2NAME@.png> ;
         modgui:javascript <modgui/script-@LV2NAME@.js> ;
+        modgui:monitoredOutputs [ lv2:symbol "pos" ] ;
         @MODBRAND@
         @MODLABEL@
     ] .
