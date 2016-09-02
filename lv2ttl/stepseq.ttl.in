@@ -26,7 +26,7 @@
 	doap:license <http://usefulinc.com/doap/licenses/gpl>;
 	doap:maintainer <http://gareus.org/rgareus#me>;
 	doap:name "MIDI Step Sequencer@NAMESUFFIX@";
-	rdfs:comment "A simple step sequencer.";
+	rdfs:comment "A simple step sequencer. This plugin allows to trigger MIDI note events placed on a time/note grid with optional BPM and Transport synchronization. Different grid-size (note, step-count) variants are available. The Step-duration is configurable to musical time and can optionally be modulated for a swing-time effect.";
 	@VERSION@
   @UITTL@
 	lv2:optionalFeature lv2:hardRTCapable;
