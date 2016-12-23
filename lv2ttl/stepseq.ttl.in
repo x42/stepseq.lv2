@@ -57,8 +57,8 @@
 		lv2:default 0;
 		lv2:maximum 1;
 		lv2:portProperty lv2:integer, lv2:enumeration;
-		lv2:scalePoint [ rdfs:label  "Control Port"; rdf:value 0 ; ] ;
-		lv2:scalePoint [ rdfs:label  "Plugin Host (if available)"; rdf:value 1 ; ] ;
+		lv2:scalePoint [ rdfs:label "Free Running"; rdf:value 0 ; ] ;
+		lv2:scalePoint [ rdfs:label "Host Sync (if available)"; rdf:value 1 ; ] ;
 	] , [
 		a lv2:InputPort, lv2:ControlPort;
 		lv2:index 3;
@@ -67,6 +67,7 @@
 		lv2:minimum  40.0;
 		lv2:default 120.0;
 		lv2:maximum 208.0;
+		units:unit units:bpm;
 	] , [
 		a lv2:InputPort, lv2:ControlPort;
 		lv2:index 4;
@@ -142,3 +143,4 @@
 		lv2:minimum 40;
 		lv2:maximum 208;
 		lv2:portProperty pprop:notOnGUI ;
+		units:unit units:bpm;
