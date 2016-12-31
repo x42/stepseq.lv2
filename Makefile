@@ -331,6 +331,7 @@ clean:
 	rm -rf $(BUILDDIR)*.dSYM
 	rm -rf $(APPBLD)x42-*
 	rm -rf $(BUILDDIR)modgui
+	rm -f modgui/icon-stepseq.html modgui/style-stepseq.css modgui/box.png
 	-test -d $(APPBLD) && rmdir $(APPBLD) || true
 	-test -d $(BUILDDIR) && rmdir $(BUILDDIR) || true
 
