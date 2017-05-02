@@ -85,8 +85,8 @@ typedef struct {
 	float div; // beats per step
 
 	/* Settings */
-	float sample_rate; // samples per second
-	float sps; // samples per step
+	double sample_rate; // samples per second
+	double sps; // samples per step
 
 	float swing;
 	bool  drum_mode;
@@ -94,12 +94,12 @@ typedef struct {
 	/* Host Time */
 	bool     host_info;
 	float    host_bpm;
-	float    bar_beats;
+	double   bar_beats;
 	float    host_speed;
 	int      host_div;
 
 	/* State */
-	float    stme; // sample-time
+	double   stme; // sample-time
 	int32_t  step; // current step
 	uint8_t  chn;  // midi channel
 
@@ -173,7 +173,7 @@ update_position (StepSeq* self, const LV2_Atom_Object* obj)
 			&& speed && speed->type == uris->atom_Float)
 	{
 		float    _bpb   = ((LV2_Atom_Float*)bpb)->body;
-		long int _bar   = ((LV2_Atom_Long*)bar)->body;
+		int64_t  _bar   = ((LV2_Atom_Long*)bar)->body;
 		float    _beat  = ((LV2_Atom_Float*)beat)->body;
 
 		self->host_div   = ((LV2_Atom_Int*)bunit)->body;
@@ -377,7 +377,7 @@ instantiate (const LV2_Descriptor*     descriptor,
 	self->sample_rate = rate;
 	self->bpm = 120.f;
 	self->div = .5f;
-	self->sps = self->sample_rate * 60.f * self->div / self->bpm;
+	self->sps = self->sample_rate * 60.0 * self->div / self->bpm;
 
 	self->step = N_STEPS - 1;
 	self->stme = N_STEPS * self->sps;
@@ -505,7 +505,7 @@ run (LV2_Handle instance, uint32_t n_samples)
 		*self->p_hostbpm = self->host_bpm;
 		if (self->host_speed <= 0) {
 			/* keep track of host position.. */
-			self->bar_beats += n_samples * self->host_bpm * self->host_speed / (60.f * self->sample_rate);
+			self->bar_beats += (double)n_samples * self->host_bpm * self->host_speed / (60.0 * self->sample_rate);
 			/* report only, don't modify state  (stme & step need to remain in sync) */
 			*self->p_step = 1 + ((int)floor (self->bar_beats / self->div) % N_STEPS);
 
@@ -527,7 +527,7 @@ run (LV2_Handle instance, uint32_t n_samples)
 		const float old = self->sps;
 		self->bpm = bpm;
 		self->div = division;
-		self->sps = self->sample_rate * 60.f * self->div / self->bpm;
+		self->sps = self->sample_rate * 60.0 * self->div / self->bpm;
 		if (self->sps < 64) { self->sps = 64; }
 		if (self->sps > 60 * self->sample_rate) { self->sps = 60 * self->sample_rate; }
 		self->stme = self->stme * self->sps / old;
@@ -611,7 +611,7 @@ run (LV2_Handle instance, uint32_t n_samples)
 	*self->p_step = 1 + (self->step % N_STEPS);
 	if (self->host_info) {
 		/* keep track of host position.. */
-		self->bar_beats += n_samples * self->host_bpm * self->host_speed / (60.f * self->sample_rate);
+		self->bar_beats += n_samples * self->host_bpm * self->host_speed / (60.0 * self->sample_rate);
 	}
 }
 
