@@ -88,8 +88,8 @@ typedef struct {
 	double sample_rate; // samples per second
 	double sps; // samples per step
 
-	float swing;
-	bool  drum_mode;
+	double swing;
+	bool   drum_mode;
 
 	/* Host Time */
 	bool     host_info;
@@ -248,7 +248,8 @@ forge_note_event (StepSeq* self, uint32_t ts, uint8_t note, uint8_t vel)
 	forge_midimessage (self, ts, msg, 3);
 }
 
-float parse_division (float div) {
+static float
+parse_division (float div) {
 	int d = rintf (div);
 	switch (d) {
 		case 0: return 0.125f;
@@ -328,7 +329,8 @@ beat_machine (StepSeq* self, uint32_t ts, uint32_t step)
 	}
 }
 
-float calc_next_step (StepSeq* self) {
+static double
+calc_next_step (StepSeq* self) {
 	const bool eighth = true; // self->div == 0.5;
 	const uint32_t step = self->step;
 	if (eighth && (step & 1) == 0) {
@@ -336,9 +338,9 @@ float calc_next_step (StepSeq* self) {
 		 * add 1/3 -> "2:1 medium swing -- triplet quarter note + triplet eighth"
 		 * add 1/2 -> "3:1 hard swing   -- dotted eighth note + sixteenth note"
 		 */
-		return (step + 1) * self->sps + self->swing * self->sps;
+		return (step + 1.0) * self->sps + self->swing * self->sps;
 	} else {
-		return (step + 1) * self->sps;
+		return (step + 1.0) * self->sps;
 	}
 }
 
@@ -524,7 +526,7 @@ run (LV2_Handle instance, uint32_t n_samples)
 
 	const float division = parse_division (*self->p_div);
 	if (bpm != self->bpm || division != self->div) {
-		const float old = self->sps;
+		const double old = self->sps;
 		self->bpm = bpm;
 		self->div = division;
 		self->sps = self->sample_rate * 60.0 * self->div / self->bpm;
@@ -533,9 +535,9 @@ run (LV2_Handle instance, uint32_t n_samples)
 		self->stme = self->stme * self->sps / old;
 	}
 
-	const float sps = self->sps;
-	const float loop_duration = N_STEPS * sps;
-	float stme = self->stme;
+	const double sps = self->sps;
+	const double loop_duration = N_STEPS * sps;
+	double stme = self->stme;
 
 	self->drum_mode = *self->p_drum > 0;
 	self->swing = *self->p_swing;
@@ -547,12 +549,12 @@ run (LV2_Handle instance, uint32_t n_samples)
 	}
 
 	if (self->host_info && *self->p_sync > 0) {
-		float hp = self->bar_beats / self->div;
+		double hp = self->bar_beats / self->div;
 
-		stme = fmodf (hp, N_STEPS) * sps;
+		stme = fmod (hp, N_STEPS) * sps;
 
 		/* handle seek - jumps to step if needed */
-		const float ns = calc_next_step (self);
+		const double ns = calc_next_step (self);
 		if (ns < stme || ns - stme > 1.5 /* max swing*/ * sps || !self->rolling) {
 
 			if (floor (hp) == hp) {
@@ -570,7 +572,7 @@ run (LV2_Handle instance, uint32_t n_samples)
 		}
 	}
 
-	float next_step = calc_next_step (self);
+	double next_step = calc_next_step (self);
 	uint32_t remain = n_samples;
 
 	if (*self->p_panic > 0) {
