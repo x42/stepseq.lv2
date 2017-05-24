@@ -610,6 +610,30 @@ run (LV2_Handle instance, uint32_t n_samples)
 	self->stme = stme + remain;
 	self->rolling = true;
 
+	/* crude sort Atom sequence by event-time
+	 * (in drum-mode or with re-trigger events may
+	 * not be sequential in time)
+	 */
+	LV2_ATOM_SEQUENCE_FOREACH (self->midiout, ev1) {
+		LV2_ATOM_SEQUENCE_FOREACH (self->midiout, ev2) {
+			if (ev2 <= ev1) {
+				continue;
+			}
+			if (ev1->time.frames > ev2->time.frames) {
+				// swap events
+				assert (ev1->body.size == ev2->body.size);
+				assert (ev1->body.size == 3);
+				int64_t tme = ev1->time.frames;
+				uint8_t body[3];
+				memcpy (body, (const uint8_t*)(ev1 + 1), 3);
+				memcpy ((uint8_t*)(ev1 + 1), (const uint8_t*)(ev2 + 1), 3);
+				ev1->time.frames = ev2->time.frames;
+				memcpy ((uint8_t*)(ev2 + 1), body, 3);
+				ev2->time.frames = tme;
+			}
+		}
+	}
+
 	*self->p_step = 1 + (self->step % N_STEPS);
 	if (self->host_info) {
 		/* keep track of host position.. */
