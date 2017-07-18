@@ -19,7 +19,7 @@ function twelvetet {
 	esac
 }
 
-for n in `seq 1 $NOTES`; do
+for ((n=1; n <= $NOTES; n++)); do
 	# TODO musical scale
 	OCT=$(( ($n - 1) / 7 ))
 	NOT=$(twelvetet $n)
@@ -40,9 +40,9 @@ done
 
 cat misc/mod_icon.head > $MODICON
 
-for n in `seq 1 $NOTES`; do
+for ((n=1; n <= $NOTES; n++)); do
 	echo '<tr><th><div class="mod-knob-16seg-image note" mod-role="input-control-port" mod-port-symbol="note'$n'" x42-role="seq-note"></div></th>' >> $MODICON
-	for s in `seq 1 $STEPS`; do
+	for ((s=1; s <= $STEPS; s++)); do
 
 		sed "s/@IDX@/$IDX/;s/@NOTE@/$n/g;s/@STEP@/$s/g" << EOF
 	] , [
@@ -63,7 +63,7 @@ EOF
 done
 
 echo '<tr><th></th>' >> $MODICON
-for s in `seq 1 $STEPS`; do
+for ((s=1; s <= $STEPS; s++)); do
 	echo '<td><div class="resetbutton col" grid-col="'$s'" title="Clear Column Step:'$s'">C</div></td>' >> $MODICON
 done
 echo '<td><div class="resetbutton all" title="Clear Grid">C</div></td>' >> $MODICON
