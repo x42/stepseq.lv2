@@ -104,7 +104,7 @@ typedef struct {
 	uint8_t  chn;  // midi channel
 
 	uint8_t  notes[N_NOTES];
-	uint8_t  active[127];
+	uint8_t  active[128];
 	bool     rolling;
 
 } StepSeq;
