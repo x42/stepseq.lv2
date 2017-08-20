@@ -289,7 +289,6 @@ beat_machine (StepSeq* self, uint32_t ts, uint32_t step)
 
 		if (NSET (n, step) && ACTV (note) && self->drum_mode) {
 			/* retrigger */
-			const uint8_t note = NOTE (n);
 			if (ts > 0) {
 				forge_note_event (self, ts - 1, note, 0);
 				forge_note_event (self, ts, note, NVEL(n, step));
@@ -316,7 +315,6 @@ beat_machine (StepSeq* self, uint32_t ts, uint32_t step)
 				}
 			}
 			if (retriger) {
-				const uint8_t note = NOTE (n);
 				if (ts > 0) {
 					forge_note_event (self, ts - 1, note, 0);
 					forge_note_event (self, ts, note, NVEL(n, step));
@@ -470,7 +468,7 @@ run (LV2_Handle instance, uint32_t n_samples)
 		if (self->notes[n] == note) {
 			continue;
 		}
-		if (ACTV (NOTE (n))) {
+		if (NOTE (n) < 128 && ACTV (NOTE (n))) {
 			forge_note_event (self, 0, NOTE (n), 0);
 		}
 		bool in_use = false;
