@@ -194,7 +194,7 @@ GLUILIBS+=$(LIC_LOADLIBES)
 
 
 ifneq ($(LIC_CFLAGS),)
-  SIGNATURE=lv2:extensionData <http:\\/\\/harrisonconsoles.com\\/lv2\\/license\#interface>\\;
+  LV2SIGN=lv2:extensionData <http:\\/\\/harrisonconsoles.com\\/lv2\\/license\#interface>\\;
   override CFLAGS += -I$(RW)
 endif
 
@@ -237,7 +237,7 @@ endif
 
 $(BUILDDIR)$(LV2NAME).ttl: lv2ttl/$(LV2NAME).ttl.in Makefile gridgen.sh misc/mod_icon.head misc/mod_icon.tail misc/style.css.in
 	@mkdir -p $(BUILDDIR)
-	sed "s/@LV2NAME@/$(LV2NAME)/g;s/@SIGNATURE@/$(SIGNATURE)/;s/@NAMESUFFIX@/$(NAMESUFFIX)/;s/@URISUFFIX@/$(URISUFFIX)/;s/@VERSION@/lv2:microVersion $(LV2MIC) ;lv2:minorVersion $(LV2MIN) ;/g;s/@UITTL@/$(UITTL)/;s/@MODBRAND@/$(MODBRAND)/;s/@MODLABEL@/$(MODLABEL)/;s/@STEPS@/$(N_STEPS)/" \
+	sed "s/@LV2NAME@/$(LV2NAME)/g;s/@SIGNATURE@/$(LV2SIGN)/;s/@NAMESUFFIX@/$(NAMESUFFIX)/;s/@URISUFFIX@/$(URISUFFIX)/;s/@VERSION@/lv2:microVersion $(LV2MIC) ;lv2:minorVersion $(LV2MIN) ;/g;s/@UITTL@/$(UITTL)/;s/@MODBRAND@/$(MODBRAND)/;s/@MODLABEL@/$(MODLABEL)/;s/@STEPS@/$(N_STEPS)/" \
 		lv2ttl/$(LV2NAME).ttl.in > $(BUILDDIR)$(LV2NAME).ttl
 	./gridgen.sh $(N_NOTES) $(N_STEPS) >> $(BUILDDIR)$(LV2NAME).ttl
 	echo "]; ." >> $(BUILDDIR)$(LV2NAME).ttl
