@@ -11,7 +11,9 @@ LV2DIR ?= $(PREFIX)/lib/lv2
 
 OPTIMIZATIONS ?= -msse -msse2 -mfpmath=sse -ffast-math -fomit-frame-pointer -O3 -fno-finite-math-only
 CFLAGS ?= -Wall -g -Wno-unused-function
-STRIP  ?= strip
+
+PKG_CONFIG?=pkg-config
+STRIP?= strip
 
 # grid-size (should be at least 4x4 for the MOD-GUI)
 N_NOTES ?= 8
@@ -62,7 +64,7 @@ else
   PUGL_SRC=$(RW)pugl/pugl_x11.c
   PKG_GL_LIBS=glu gl
   GLUILIBS=-lX11
-  GLUICFLAGS+=`pkg-config --cflags glu` -pthread
+  GLUICFLAGS+=`$(PKG_CONFIG) --cflags glu` -pthread
   STRIPFLAGS= -s
   EXTENDED_RE=-r
 endif
@@ -125,18 +127,18 @@ ifneq ($(N_NOTES)-$(N_STEPS),8-8)
 endif
 
 # check for build-dependencies
-ifeq ($(shell pkg-config --exists lv2 || echo no), no)
+ifeq ($(shell $(PKG_CONFIG) --exists lv2 || echo no), no)
   $(error "LV2 SDK was not found")
 endif
 
 ifneq ($(BUILDOPENGL)$(BUILDJACKAPP), nono)
- ifeq ($(shell pkg-config --exists pango cairo $(PKG_GL_LIBS) || echo no), no)
+ ifeq ($(shell $(PKG_CONFIG) --exists pango cairo $(PKG_GL_LIBS) || echo no), no)
   $(error "This plugin requires cairo pango $(PKG_GL_LIBS)")
  endif
 endif
 
 ifneq ($(BUILDJACKAPP), no)
- ifeq ($(shell pkg-config --exists jack || echo no), no)
+ ifeq ($(shell $(PKG_CONFIG) --exists jack || echo no), no)
   $(warning *** libjack from http://jackaudio.org is required)
   $(error   Please install libjack-dev or libjack-jackd2-dev)
  endif
@@ -144,7 +146,7 @@ ifneq ($(BUILDJACKAPP), no)
 endif
 
 # check for lv2_atom_forge_object  new in 1.8.1 deprecates lv2_atom_forge_blank
-ifeq ($(shell pkg-config --atleast-version=1.8.1 lv2 && echo yes), yes)
+ifeq ($(shell $(PKG_CONFIG) --atleast-version=1.8.1 lv2 && echo yes), yes)
   override CFLAGS += -DHAVE_LV2_1_8
 endif
 
@@ -172,18 +174,18 @@ LV2UIREQ+=lv2:requiredFeature ui:idleInterface; lv2:extensionData ui:idleInterfa
 
 # add library dependent flags and libs
 override CFLAGS += $(OPTIMIZATIONS) -DVERSION="\"$(stepseq_VERSION)\""
-override CFLAGS += `pkg-config --cflags lv2`
+override CFLAGS += `$(PKG_CONFIG) --cflags lv2`
 
 ifeq ($(XWIN),)
 override CFLAGS += -fPIC -fvisibility=hidden
 else
 override CFLAGS += -DPTW32_STATIC_LIB
 endif
-override LOADLIBES += `pkg-config --libs lv2`
+override LOADLIBES += `$(PKG_CONFIG) --libs lv2`
 
 
-GLUICFLAGS+=`pkg-config --cflags cairo pango` $(CFLAGS)
-GLUILIBS+=`pkg-config $(PKG_UI_FLAGS) --libs cairo pango pangocairo $(PKG_GL_LIBS)`
+GLUICFLAGS+=`$(PKG_CONFIG) --cflags cairo pango` $(CFLAGS)
+GLUILIBS+=`$(PKG_CONFIG) $(PKG_UI_FLAGS) --libs cairo pango pangocairo $(PKG_GL_LIBS)`
 
 ifneq ($(XWIN),)
 GLUILIBS+=-lpthread -lusp10
@@ -201,7 +203,7 @@ endif
 ROBGL+= Makefile
 
 JACKCFLAGS=-I. $(CFLAGS) $(LIC_CFLAGS)
-JACKCFLAGS+=`pkg-config --cflags jack lv2 pango pangocairo $(PKG_GL_LIBS)`
+JACKCFLAGS+=`$(PKG_CONFIG) --cflags jack lv2 pango pangocairo $(PKG_GL_LIBS)`
 JACKLIBS=-lm $(GLUILIBS) $(LOADLIBES)
 
 
