@@ -75,6 +75,62 @@ typedef struct {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+static const char* mdrums[] = {
+      "Kick 2",    // "Bass Drum 2"  #35
+      "Kick 1",    // "Bass Drum 1"
+      "RimShot",   // "Side Stick/Rimshot"
+      "Snare 1",   // "Snare Drum 1"
+      "Clap",      // "Hand Clap"
+      "Snare 2",   // "Snare Drum 2"
+      "Low Tom 2", // "Low Tom 2"
+      "HH Closed", // "Closed Hi-hat"
+      "Low Tom 1", // "Low Tom 1"
+      "HH Pedal",  // "Pedal Hi-hat"
+      "Mid Tom 2", // "Mid Tom 2"
+      "HH Open",   // "Open Hi-hat"
+      "Mid Tom 1", // "Mid Tom 1"
+      "Hi Tom 2",  // "High Tom 2"
+      "Crash 1",   // "Crash Cymbal 1"
+      "Hi Tom 1",  // "High Tom 1"
+      "Ride 1",    // "Ride Cymbal 1"
+      "China Cym", // "Chinese Cymbal"
+      "Ride Bell", // "Ride Bell"
+      "Tambour.",  // "Tambourine"
+      "Splash",    // "Splash Cymbal"
+      "Cowbell",   // "Cowbell"
+      "Crash 2",   // "Crash Cymbal 2"
+      "Slap",      // "Vibra Slap"
+      "Ride 2",    // "Ride Cymbal 2"
+      "Bongo Hi",  // "High Bongo"
+      "Bongo Lo",  // "Low Bongo"
+      "Conga Mt.", // "Mute High Conga"
+      "Conga Op.", // "Open High Conga"
+      "Conga Low", // "Low Conga"
+      "Timbale H", // "High Timbale"
+      "Timbale L", // "Low Timbale"
+      "Agogo H",   // "High Agogô"
+      "Agogo L",   // "Low Agogô"
+      "Cabasa",    // "Cabasa"
+      "Maracas",   // "Maracas"
+      "Whistle S", // "Short Whistle"
+      "Whistle L", // "Long Whistle"
+      "Guiro S",   // "Short Güiro"
+      "Guiro L",   // "Long Güiro"
+      "Claves",    // "Claves"
+      "Woodblk H", // "High Wood Block"
+      "Woodblk L", // "Low Wood Block"
+      "Cuica Mt.", // "Mute Cuíca"
+      "Cuica Op.", // "Open Cuíca"
+      "Tri. Mt.",  // "Mute Triangle"
+      "Tri. Op."   // "Open Triangle"
+};
+
+static const char* notename[] = {
+	"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
 struct MyGimpImage {
 	unsigned int   width;
 	unsigned int   height;
@@ -337,10 +393,13 @@ static void cnob_expose_bpm (RobTkCnob* d, cairo_t* cr, void* data) {
 
 static void set_note_txt (SeqUI* ui, int n) {
 	int mn = rintf (robtk_select_get_value (ui->sel_note[n]));
-	char txt[7];
-	const char *nn[] = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
-	sprintf (txt, "%2s%d", nn[mn%12], -1 + mn / 12);
-	robtk_lbl_set_text (ui->lbl_note[n], txt);
+	if (mn >= 35 && mn <= 81 && robtk_cbtn_get_active (ui->btn_drum)) {
+		robtk_lbl_set_text (ui->lbl_note[n], mdrums[mn-35]);
+	} else {
+		char txt[10];
+		sprintf (txt, "%-2s%d ", notename[mn%12], -1 + mn / 12);
+		robtk_lbl_set_text (ui->lbl_note[n], txt);
+	}
 }
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -403,6 +462,9 @@ static bool cb_sync (RobWidget* w, void* handle) {
 
 static bool cb_drum (RobWidget* w, void* handle) {
 	SeqUI* ui = (SeqUI*)handle;
+	for (int n = 0; n < N_NOTES; ++n) {
+		set_note_txt (ui, n);
+	}
 	if (ui->disable_signals) return TRUE;
 	const float val = robtk_cbtn_get_active (ui->btn_drum) ? 1 : 0;
 	ui->write (ui->controller, PORT_DRUM, sizeof (float), 0, (const void*) &val);
@@ -475,8 +537,9 @@ static RobWidget* toplevel (SeqUI* ui, void* const top) {
 #define GSL_W(PTR) robtk_select_widget (PTR)
 
 	for (uint32_t n = 0; n < N_NOTES; ++n) {
-		ui->lbl_note[n] = robtk_lbl_new ("A#-1");
-		robtk_lbl_set_alignment (ui->lbl_note[n], .9, 0);
+		ui->lbl_note[n] = robtk_lbl_new ("##|G#-8|#");
+		robtk_lbl_set_min_geometry (ui->lbl_note[n], ui->lbl_note[n]->w_width, ui->lbl_note[n]->w_height);
+		robtk_lbl_set_alignment (ui->lbl_note[n], .5, 0);
 		ui->sel_note[n] = robtk_select_new ();
 			for (uint32_t mn = 0; mn < 128; ++mn) {
 				char txt[8];
