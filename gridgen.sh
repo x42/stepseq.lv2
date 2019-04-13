@@ -2,6 +2,23 @@
 NOTES=$1
 STEPS=$2
 
+if test -z "$NOTES" -o -z "$STEPS"; then
+	echo "Number of notes and steps must be given."
+	exit 1
+fi
+
+if ! [ "$NOTES" -eq "$NOTES" ] 2>/dev/null; then
+	echo "Number of Notes must be an integer"
+	exit 1
+fi
+
+if ! [ "$STEPS" -eq "$STEPS" ] 2>/dev/null; then
+	echo "Number of Steps must be an integer"
+	exit 1
+fi
+
+
+mkdir -p modgui
 MODICON=modgui/icon-stepseq.html
 MODSTYLE=modgui/style-stepseq.css
 IDX=11
