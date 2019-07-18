@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 NOTES=$1
 STEPS=$2
 
