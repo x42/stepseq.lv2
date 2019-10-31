@@ -18,7 +18,7 @@ static const RtkLv2Description _plugin = {
 		{ "bpm", CONTROL_IN, 120.000000, 40.000000, 208.000000, "BPM"},
 		{ "div", CONTROL_IN, 3.000000, 0.000000, 9.000000, "Step Duration (4/4)"},
 		{ "swing", CONTROL_IN, 0.000000, 0.000000, 0.500000, "Swing"},
-		{ "drummode", CONTROL_IN, 0.000000, 0.000000, 1.000000, "Drum Mode"},
+		{ "drummode", CONTROL_IN, 0.000000, 0.000000, 2.000000, "Drum Mode"},
 		{ "chn", CONTROL_IN, 0.000000, 0.000000, 15.000000, "Midi Channel"},
 		{ "panic", CONTROL_IN, 0.000000, 0.000000, 1.000000, "MIDI Panic"},
 		{ "pos", CONTROL_OUT, nan, 1.000000, 8.000000, "Step Position"},

@@ -52,7 +52,7 @@ typedef struct {
 	RobTkLbl*    lbl_note[N_NOTES];
 	RobTkPBtn*   btn_clear[N_NOTES + N_STEPS + 1];
 	RobTkCBtn*   btn_sync;
-	RobTkCBtn*   btn_drum;
+	RobTkSelect* sel_drum;
 	RobTkSelect* sel_mchn;
 	RobTkCnob*   spn_div;
 	RobTkCnob*   spn_bpm;
@@ -123,6 +123,35 @@ static const char* mdrums[] = {
       "Cuica Op.", // "Open Cuíca"
       "Tri. Mt.",  // "Mute Triangle"
       "Tri. Op."   // "Open Triangle"
+};
+
+static const char* avldrums[] = {
+	"KickDrum", // 36
+	"SnareSide",
+	"Snare",
+	"HandClap",
+	"SnareEdge",
+	"Floor Tom",
+	"HH Closed",
+	"FTom Edge",
+	"HH Pedal",
+	"TomCtr",
+	"HH Semi",
+	"Tom Edge",
+	"HH Swish",
+	"Crash 1",
+	"Crash 1Ck",
+	"Ride Tip",
+	"Ride Chk",
+	"Ride Bell",
+	"Tambour.",
+	"Splash",
+	"Cowbell",
+	"Crash 2",
+	"Crash 2Ck",
+	"Ride Shnk",
+	"Crash 3",
+	"Maracas" // 61
 };
 
 static const char* notename[] = {
@@ -392,11 +421,17 @@ static void cnob_expose_bpm (RobTkCnob* d, cairo_t* cr, void* data) {
 }
 
 static void set_note_txt (SeqUI* ui, int n) {
-	int mn = rintf (robtk_select_get_value (ui->sel_note[n]));
-	if (mn >= 35 && mn <= 81 && robtk_cbtn_get_active (ui->btn_drum)) {
+	const int mn = rintf (robtk_select_get_value (ui->sel_note[n]));
+	const int dm = rintf (robtk_select_get_value (ui->sel_drum));
+
+	if (dm == 1 && mn >= 35 && mn <= 81) {
+		/* general midi */
 		robtk_lbl_set_text (ui->lbl_note[n], mdrums[mn-35]);
+	} else if (dm == 2 && mn >= 36 && mn <= 61) {
+		/* avldrums */
+		robtk_lbl_set_text (ui->lbl_note[n], avldrums[mn-36]);
 	} else {
-		char txt[10];
+		char txt[16];
 		sprintf (txt, "%-2s%d ", notename[mn%12], -1 + mn / 12);
 		robtk_lbl_set_text (ui->lbl_note[n], txt);
 	}
@@ -466,7 +501,7 @@ static bool cb_drum (RobWidget* w, void* handle) {
 		set_note_txt (ui, n);
 	}
 	if (ui->disable_signals) return TRUE;
-	const float val = robtk_cbtn_get_active (ui->btn_drum) ? 1 : 0;
+	const float val = robtk_select_get_value (ui->sel_drum);
 	ui->write (ui->controller, PORT_DRUM, sizeof (float), 0, (const void*) &val);
 	return TRUE;
 }
@@ -590,8 +625,12 @@ static RobWidget* toplevel (SeqUI* ui, void* const top) {
 	robtk_cbtn_set_callback (ui->btn_sync, cb_sync, ui);
 
 	/* sync */
-	ui->btn_drum = robtk_cbtn_new ("Drum Mode", GBT_LED_LEFT, false);
-	robtk_cbtn_set_callback (ui->btn_drum, cb_drum, ui);
+	ui->sel_drum = robtk_select_new ();
+	robtk_select_add_item (ui->sel_drum, 0, "Chromatic");
+	robtk_select_add_item (ui->sel_drum, 1, "GM/GS Drums");
+	robtk_select_add_item (ui->sel_drum, 2, "AVL Drums");
+	robtk_select_set_default_item (ui->sel_drum, 0);
+	robtk_select_set_callback (ui->sel_drum, cb_drum, ui);
 
 	/* beat divicer */
 	ui->spn_div = robtk_cnob_new (0, 9, 1, 30, 42);
@@ -645,7 +684,7 @@ static RobWidget* toplevel (SeqUI* ui, void* const top) {
 	/* Layout */
 
 	rob_table_attach (ui->ctbl, robtk_cbtn_widget (ui->btn_sync),  0,  2, cr + 0, cr + 1, 2, 0, RTK_EXANDF, RTK_SHRINK);
-	rob_table_attach (ui->ctbl, robtk_cbtn_widget (ui->btn_drum),  0,  2, cr + 1, cr + 2, 2, 0, RTK_EXANDF, RTK_SHRINK);
+	rob_table_attach (ui->ctbl, GSL_W (ui->sel_drum),              0,  2, cr + 1, cr + 2, 2, 0, RTK_EXANDF, RTK_SHRINK);
 
 	rob_table_attach (ui->ctbl, robtk_cnob_widget (ui->spn_div),   3,  4, cr + 0, cr + 2, 0, 0, RTK_EXANDF, RTK_SHRINK);
 	rob_table_attach (ui->ctbl, robtk_cnob_widget (ui->spn_bpm),   4,  6, cr + 0, cr + 2, 0, 0, RTK_SHRINK, RTK_SHRINK);
@@ -685,7 +724,7 @@ static void gui_cleanup (SeqUI* ui) {
 	}
 
 	robtk_cbtn_destroy (ui->btn_sync);
-	robtk_cbtn_destroy (ui->btn_drum);
+	robtk_select_destroy (ui->sel_drum);
 	robtk_select_destroy (ui->sel_mchn);
 	robtk_cnob_destroy (ui->spn_div);
 	robtk_cnob_destroy (ui->spn_bpm);
@@ -811,7 +850,7 @@ port_event (LV2UI_Handle handle,
 			robtk_select_set_value (ui->sel_mchn, v);
 			break;
 		case PORT_DRUM:
-			robtk_cbtn_set_active (ui->btn_drum, v > 0);
+			robtk_select_set_value (ui->sel_drum, v);
 			break;
 		case PORT_SWING:
 			robtk_cnob_set_value (ui->spn_swing, v);
