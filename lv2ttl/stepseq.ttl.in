@@ -2,6 +2,7 @@
 @prefix doap:  <http://usefulinc.com/ns/doap#> .
 @prefix foaf:  <http://xmlns.com/foaf/0.1/> .
 @prefix kx:    <http://kxstudio.sf.net/ns/lv2ext/external-ui#> .
+@prefix log:   <http://lv2plug.in/ns/ext/log#> .
 @prefix lv2:   <http://lv2plug.in/ns/lv2core#> .
 @prefix midi:  <http://lv2plug.in/ns/ext/midi#> .
 @prefix mod:   <http://moddevices.com/ns/mod#> .
@@ -29,7 +30,7 @@
 	rdfs:comment "A simple step sequencer. This plugin allows to trigger MIDI note events placed on a time/note grid with optional BPM and Transport synchronization. Different grid-size (note, step-count) variants are available. The Step-duration is configurable to musical time and can optionally be modulated for a swing-time effect.";
 	@VERSION@
   @UITTL@
-	lv2:optionalFeature lv2:hardRTCapable;
+	lv2:optionalFeature lv2:hardRTCapable, log:log;
 	lv2:requiredFeature urid:map;
 	@MODBRAND@
 	@MODLABEL@
