@@ -158,6 +158,20 @@ static const char* notename[] = {
 	"C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"
 };
 
+/* factory default mappings, nd2 user manual p.10, nd3 user manual p.12 */
+static const char* norddrum[] = {
+	"Channel 1", // 60
+	notename[61%12],
+	"Channel 2",
+	notename[63%12],
+	"Channel 3",
+	"Channel 4",
+	notename[66%12],
+	"Channel 5",
+	notename[68%12],
+	"Channel 6" // 69
+};
+
 ///////////////////////////////////////////////////////////////////////////////
 
 struct MyGimpImage {
@@ -430,6 +444,9 @@ static void set_note_txt (SeqUI* ui, int n) {
 	} else if (dm == 2 && mn >= 36 && mn <= 61) {
 		/* avldrums */
 		robtk_lbl_set_text (ui->lbl_note[n], avldrums[mn-36]);
+	} else if (dm == 3 && mn >= 60 && mn <= 69) {
+		/* nord drum 2 & 3 */
+		robtk_lbl_set_text (ui->lbl_note[n], norddrum[mn-60]);
 	} else {
 		char txt[16];
 		sprintf (txt, "%-2s%d ", notename[mn%12], -1 + mn / 12);
@@ -629,6 +646,7 @@ static RobWidget* toplevel (SeqUI* ui, void* const top) {
 	robtk_select_add_item (ui->sel_drum, 0, "Chromatic");
 	robtk_select_add_item (ui->sel_drum, 1, "GM/GS Drums");
 	robtk_select_add_item (ui->sel_drum, 2, "AVL Drums");
+	robtk_select_add_item (ui->sel_drum, 3, "Nord Drum 2/3");
 	robtk_select_set_default_item (ui->sel_drum, 0);
 	robtk_select_set_callback (ui->sel_drum, cb_drum, ui);
 

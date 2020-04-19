@@ -112,6 +112,7 @@
 		lv2:scalePoint [ rdfs:label "Chromatic Scale"; rdf:value 0 ; ] ;
 		lv2:scalePoint [ rdfs:label "GM/GS Drums"; rdf:value 1 ; ] ;
 		lv2:scalePoint [ rdfs:label "AVLinux Drums"; rdf:value 2 ; ] ;
+		lv2:scalePoint [ rdfs:label "Nord Drum 2/3"; rdf:value 3 ; ] ;
 	] , [
 		a lv2:InputPort, lv2:ControlPort;
 		lv2:index 7;
