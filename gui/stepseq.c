@@ -646,7 +646,7 @@ static RobWidget* toplevel (SeqUI* ui, void* const top) {
 	robtk_select_add_item (ui->sel_drum, 0, "Chromatic");
 	robtk_select_add_item (ui->sel_drum, 1, "GM/GS Drums");
 	robtk_select_add_item (ui->sel_drum, 2, "AVL Drums");
-	robtk_select_add_item (ui->sel_drum, 3, "Nord Drum 2/3");
+	robtk_select_add_item (ui->sel_drum, 3, "Nord Drum");
 	robtk_select_set_default_item (ui->sel_drum, 0);
 	robtk_select_set_callback (ui->sel_drum, cb_drum, ui);
 
