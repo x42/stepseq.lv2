@@ -555,7 +555,7 @@ static bool cb_btn_reset (RobWidget *w, void* handle) {
 	if (g < N_NOTES) {
 		// row 'g'
 		for (uint32_t p = 0; p < N_STEPS; ++p) {
-			uint32_t po = N_NOTES * g + p;
+			uint32_t po = N_STEPS * g + p;
 			robtk_vbtn_set_value (ui->btn_grid[po], 0);
 		}
 	} else if (g < N_NOTES + N_STEPS) {
