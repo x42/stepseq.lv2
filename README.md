@@ -9,7 +9,7 @@ Install
 Compiling stepseq requires the LV2 SDK, bash, gnu-make, and a c-compiler.
 
 ```bash
-  git clone git://github.com/x42/stepseq.lv2.git
+  git clone https://github.com/x42/stepseq.lv2.git
   cd stepseq.lv2
   make submodules
   make
