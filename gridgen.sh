@@ -18,10 +18,16 @@ if ! [ "$STEPS" -eq "$STEPS" ] 2>/dev/null; then
 fi
 
 
-mkdir -p modgui
-MODICON=modgui/icon-stepseq.html
-MODSTYLE=modgui/style-stepseq.css
 IDX=11
+
+if test -n "$MOD"; then
+mkdir -p modgui
+	MODICON=modgui/icon-stepseq.html
+	MODSTYLE=modgui/style-stepseq.css
+else
+	MODICON=/dev/null
+	MODSTYLE=/dev/null
+fi
 
 function twelvetet {
 	num=$(( $1 % 7 ))
@@ -78,6 +84,10 @@ EOF
 	echo '<td><div class="resetbutton row" grid-row="'$n'" title="Clear Note Row">C</div></td>' >> $MODICON
 	echo '</tr>' >> $MODICON
 done
+
+if test -z "$MOD"; then
+	exit
+fi
 
 echo '<tr><th></th>' >> $MODICON
 for ((s=1; s <= $STEPS; s++)); do

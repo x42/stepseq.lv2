@@ -241,7 +241,7 @@ $(BUILDDIR)$(LV2NAME).ttl: lv2ttl/$(LV2NAME).ttl.in Makefile gridgen.sh misc/mod
 	@mkdir -p $(BUILDDIR)
 	sed "s/@LV2NAME@/$(LV2NAME)/g;s/@SIGNATURE@/$(LV2SIGN)/;s/@NAMESUFFIX@/$(NAMESUFFIX)/;s/@URISUFFIX@/$(URISUFFIX)/;s/@VERSION@/lv2:microVersion $(LV2MIC) ;lv2:minorVersion $(LV2MIN) ;/g;s/@UITTL@/$(UITTL)/;s/@MODBRAND@/$(MODBRAND)/;s/@MODLABEL@/$(MODLABEL)/;s/@STEPS@/$(N_STEPS)/" \
 		lv2ttl/$(LV2NAME).ttl.in > $(BUILDDIR)$(LV2NAME).ttl
-	./gridgen.sh $(N_NOTES) $(N_STEPS) >> $(BUILDDIR)$(LV2NAME).ttl
+	MOD=$(MOD) ./gridgen.sh $(N_NOTES) $(N_STEPS) >> $(BUILDDIR)$(LV2NAME).ttl
 	echo "]; ." >> $(BUILDDIR)$(LV2NAME).ttl
 ifneq ($(BUILDOPENGL), no)
 	sed "s/@LV2NAME@/$(LV2NAME)/g;s/@URISUFFIX@/$(URISUFFIX)/;s/@UI_TYPE@/$(UI_TYPE)/;s/@UI_REQ@/$(LV2UIREQ)/" \
