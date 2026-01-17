@@ -107,7 +107,7 @@
 		lv2:name "Drum Mode";
 		lv2:minimum 0;
 		lv2:default 0;
-		lv2:maximum 2;
+		lv2:maximum 3;
 		lv2:portProperty lv2:integer;
 		lv2:scalePoint [ rdfs:label "Chromatic Scale"; rdf:value 0 ; ] ;
 		lv2:scalePoint [ rdfs:label "GM/GS Drums"; rdf:value 1 ; ] ;
